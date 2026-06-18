@@ -173,7 +173,7 @@ function renderDetail() {
 
     <aside class="transparency">
       <div class="panel">
-        <button class="btn btn-primary btn-block" onclick="fakeApply('${j.id}')">Apply now</button>
+        <button class="btn btn-primary btn-block" onclick="openApplyModal('${j.id}')">⚡ One-click apply</button>
         <p class="muted center" style="font-size:12.5px;margin-top:8px">You'll be able to track this in your dashboard.</p>
         <div style="margin-top:16px">
           <div class="t-row"><span class="k">Salary (always shown)</span><span class="v">${fmtSalary(j.salaryMin, j.salaryMax)}</span></div>
@@ -203,10 +203,87 @@ function renderDetail() {
   </div>`;
 }
 
-function fakeApply(id) {
-  const j = JOBS.find(x => x.id === id);
-  alert(`✓ Applied to ${j.title} at ${j.company}.\n\nTrack progress anytime in your Dashboard — no more black hole after applying.`);
-  location.href = "dashboard.html";
+/* ---------- localStorage helpers (persist user activity) ---------- */
+const LS_APPS = "naukriplus_apps";
+const LS_POSTED = "naukriplus_posted";
+const getStored = key => { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } };
+const setStored = (key, v) => localStorage.setItem(key, JSON.stringify(v));
+
+/* ---------- One-click apply modal ---------- */
+function openApplyModal(id) {
+  const j = JOBS.find(x => x.id === id) || JOBS[0];
+  const already = getStored(LS_APPS).some(a => a.jobId === id);
+
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+
+  overlay.innerHTML = already ? `
+    <div class="modal">
+      <div class="ok">
+        <div class="check-big">✓</div>
+        <h2>Already applied</h2>
+        <p class="muted" style="margin-top:6px">You've applied to ${j.title} at ${j.company}. Track it in your dashboard.</p>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:18px">
+          <a class="btn btn-ghost" href="job.html?id=${j.id}" onclick="this.closest('.modal-overlay').remove()">Close</a>
+          <a class="btn btn-primary" href="dashboard.html">Go to dashboard</a>
+        </div>
+      </div>
+    </div>` : `
+    <div class="modal">
+      <div class="modal-head">
+        <div class="logo-box" style="background:${j.logoColor}">${j.logoText}</div>
+        <div><h2 style="margin:0">Apply to ${j.title}</h2>
+          <p class="muted" style="font-size:13.5px">${j.company} · ${fmtSalary(j.salaryMin, j.salaryMax)}</p></div>
+        <button class="x" aria-label="Close" onclick="this.closest('.modal-overlay').remove()">×</button>
+      </div>
+      <form class="modal-body" id="apply-form">
+        <div class="form-row">
+          <label>Full name <span class="req">*</span></label>
+          <input name="name" required value="Aarav Sharma" />
+        </div>
+        <div class="form-row">
+          <label>Email <span class="req">*</span></label>
+          <input name="email" type="email" required value="aarav@example.com" />
+        </div>
+        <div class="form-row">
+          <label>Resume <span class="req">*</span></label>
+          <label class="file-drop" for="resume-file" id="resume-label">📎 Aarav_Sharma_Resume.pdf (using saved resume)</label>
+          <input id="resume-file" type="file" accept=".pdf,.doc,.docx" style="display:none" />
+        </div>
+        <div class="form-row">
+          <label>Message to recruiter <span class="muted">(optional)</span></label>
+          <textarea name="msg" placeholder="A line on why you're a great fit…"></textarea>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">Submit application</button>
+        <p class="muted center" style="font-size:12px;margin-top:10px">🛡 Verified employer · contact happens in-app, not by phone spam</p>
+      </form>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  const fileInput = overlay.querySelector("#resume-file");
+  fileInput && fileInput.addEventListener("change", e => {
+    if (e.target.files[0]) overlay.querySelector("#resume-label").textContent = "📎 " + e.target.files[0].name;
+  });
+
+  const form = overlay.querySelector("#apply-form");
+  form && form.addEventListener("submit", e => {
+    e.preventDefault();
+    const apps = getStored(LS_APPS);
+    apps.unshift({ jobId: j.id, appliedDays: 0, stage: 0, status: "active", note: "Application submitted — recruiter notified" });
+    setStored(LS_APPS, apps);
+    overlay.querySelector(".modal").innerHTML = `
+      <div class="ok">
+        <div class="check-big">✓</div>
+        <h2>Application sent!</h2>
+        <p class="muted" style="margin-top:6px">You applied to <b>${j.title}</b> at ${j.company}. We'll keep you posted at every stage — no black hole.</p>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:18px">
+          <a class="btn btn-ghost" href="jobs.html">Keep browsing</a>
+          <a class="btn btn-primary" href="dashboard.html">Track application →</a>
+        </div>
+      </div>`;
+  });
 }
 
 /* ---------- Dashboard / application tracker ---------- */
@@ -214,20 +291,26 @@ function renderDashboard() {
   const root = document.getElementById("dash-root");
   if (!root) return;
 
-  const active = APPLICATIONS.filter(a => a.status === "active").length;
-  const offers = APPLICATIONS.filter(a => a.status === "offer").length;
-  const interviews = APPLICATIONS.filter(a => a.stage >= 3 && a.status !== "rejected").length;
+  // user's freshly-applied jobs (localStorage) first, then seed data — dedupe by jobId
+  const stored = getStored(LS_APPS);
+  const seen = new Set(stored.map(a => a.jobId));
+  const apps = [...stored, ...APPLICATIONS.filter(a => !seen.has(a.jobId))];
+
+  const active = apps.filter(a => a.status === "active").length;
+  const offers = apps.filter(a => a.status === "offer").length;
+  const interviews = apps.filter(a => a.stage >= 3 && a.status !== "rejected").length;
 
   const stats = `
     <div class="stat-cards">
-      <div class="stat-card"><b>${APPLICATIONS.length}</b><span>Applications</span></div>
+      <div class="stat-card"><b>${apps.length}</b><span>Applications</span></div>
       <div class="stat-card"><b>${active}</b><span>In progress</span></div>
       <div class="stat-card"><b>${interviews}</b><span>At interview+</span></div>
       <div class="stat-card accent"><b>${offers}</b><span>Offers 🎉</span></div>
     </div>`;
 
-  const rows = APPLICATIONS.map(a => {
+  const rows = apps.map(a => {
     const j = JOBS.find(x => x.id === a.jobId);
+    if (!j) return "";
     const steps = STAGES.map((label, i) => {
       let cls = "";
       if (a.status === "rejected" && i === a.stage) cls = "rejected";
@@ -244,7 +327,7 @@ function renderDashboard() {
         <div class="logo-box" style="background:${j.logoColor}">${j.logoText}</div>
         <div style="flex:1">
           <h3>${j.title}</h3>
-          <div class="company">${j.company} · ${j.location} · Applied ${a.appliedDays}d ago</div>
+          <div class="company">${j.company} · ${j.location} · Applied ${a.appliedDays === 0 ? "today" : a.appliedDays + "d ago"}</div>
         </div>
         <a class="btn btn-ghost btn-sm" href="job.html?id=${j.id}">View job</a>
       </div>
@@ -268,6 +351,65 @@ function initHomeSearch() {
   });
 }
 
+/* ---------- Employer: post a job (live preview + submit) ---------- */
+function initPostJob() {
+  const form = document.getElementById("post-form");
+  if (!form) return;
+  const preview = document.getElementById("post-preview");
+
+  const read = () => {
+    const f = new FormData(form);
+    const title = f.get("title") || "Job title";
+    const company = f.get("company") || "Your company";
+    const skills = (f.get("skills") || "").split(",").map(s => s.trim()).filter(Boolean);
+    return {
+      id: "preview",
+      title, company,
+      logoColor: "#1875e5",
+      logoText: (company.trim()[0] || "?").toUpperCase() + (company.trim().split(" ")[1]?.[0]?.toUpperCase() || ""),
+      verified: f.get("verify") === "on",
+      location: f.get("location") || "City",
+      remote: f.get("remote") || "On-site",
+      experience: f.get("experience") || "—",
+      type: f.get("type") || "Full-time",
+      salaryMin: f.get("salaryMin") || 0,
+      salaryMax: f.get("salaryMax") || 0,
+      postedDays: 0,
+      applicants: 0,
+      skills: skills.length ? skills : ["Add skills…"],
+      matchScore: 100,
+      matchReason: "Preview of how your listing appears to matched candidates."
+    };
+  };
+
+  const refresh = () => { preview.innerHTML = jobCard(read()); };
+  form.addEventListener("input", refresh);
+  refresh();
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const min = Number(new FormData(form).get("salaryMin"));
+    const max = Number(new FormData(form).get("salaryMax"));
+    if (!min || !max || max < min) {
+      alert("Salary range is required and max must be ≥ min.\n\nNaukri+ never lets employers hide pay — that's the point.");
+      return;
+    }
+    const posted = getStored(LS_POSTED);
+    posted.unshift(read());
+    setStored(LS_POSTED, posted);
+    document.getElementById("post-root").innerHTML = `
+      <div class="panel center" style="max-width:560px;margin:48px auto">
+        <div class="check-big" style="margin:0 auto 14px">✓</div>
+        <h2>Job submitted for verification</h2>
+        <p class="muted" style="margin-top:8px">Before going live, our trust team verifies your company identity and scans the listing for fee-fraud patterns — usually within 24 hours. This is why candidates trust Naukri+ listings.</p>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:20px">
+          <a class="btn btn-ghost" href="post-job.html">Post another</a>
+          <a class="btn btn-primary" href="jobs.html">View live jobs</a>
+        </div>
+      </div>`;
+  });
+}
+
 /* ---------- Boot ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   renderFeatured();
@@ -275,4 +417,5 @@ document.addEventListener("DOMContentLoaded", () => {
   renderDetail();
   renderDashboard();
   initHomeSearch();
+  initPostJob();
 });
