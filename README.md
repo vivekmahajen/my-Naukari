@@ -66,17 +66,74 @@ See `assets/css/styles.css` for tokens. Highlights:
 ├── jobs.html           # Search + listings
 ├── job.html            # Job detail (?id=)
 ├── dashboard.html      # Application tracker
+├── post-job.html       # Employer posting page
 ├── assets/
 │   ├── css/styles.css  # Design system
 │   └── js/
-│       ├── data.js     # Mock jobs + applications
-│       └── app.js      # Rendering / search / filters
+│       ├── data.js     # Mock jobs (offline fallback)
+│       └── app.js      # API client + rendering / search / auth
+├── server/             # Express + PostgreSQL + JWT API
+│   ├── package.json
+│   ├── .env.example
+│   └── src/
+│       ├── index.js    # Routes
+│       ├── db.js       # pg pool
+│       ├── auth.js     # JWT helpers + middleware
+│       ├── migrate.js  # Schema
+│       └── seed.js     # Demo data
 └── .claude/skills/website-analyzer-builder/SKILL.md
 ```
 
-## Run
+## Backend (Express + PostgreSQL + JWT auth)
+
+The frontend is wired to a real API in `server/`. It falls back to the bundled
+mock data when the API is unreachable, so the static site still works offline.
+
+### API endpoints
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| `POST` | `/api/auth/register` | – | Create candidate or employer account |
+| `POST` | `/api/auth/login` | – | Log in, returns JWT |
+| `GET`  | `/api/auth/me` | Bearer | Current user |
+| `GET`  | `/api/jobs` | – | List/search jobs (`?q=&location=&category=&remote=&verified=true&fresh=true`) |
+| `GET`  | `/api/jobs/:id` | – | Single job |
+| `POST` | `/api/jobs` | Employer | Post a job (salary range required) |
+| `GET`  | `/api/employer/jobs` | Employer | My posted jobs |
+| `GET`  | `/api/applications` | Bearer | My applications + live stages |
+| `POST` | `/api/applications` | Bearer | Apply to a job (deduped) |
+
+### Database schema
+
+`users` (candidate/employer + bcrypt hash) · `jobs` (salary required by CHECK
+constraint) · `applications` (unique per user+job, stage/status tracking).
+
+### Setup & run
 
 ```bash
-# Any static server, or just open the file:
+# 1. Start PostgreSQL and create the database + role
+#    (in this environment Postgres 16 is already configured as below)
+createdb naukriplus   # or use your own DATABASE_URL
+
+# 2. Backend
+cd server
+cp .env.example .env          # adjust DATABASE_URL / JWT_SECRET
+npm install
+npm run setup                 # migrate + seed (8 jobs, demo users)
+npm start                     # API on http://localhost:4000
+
+# 3. Frontend (separate terminal, from repo root)
+python3 -m http.server 8000   # visit http://localhost:8000
+```
+
+**Demo logins:** `aarav@example.com` (candidate) · `employer@acme.com` (employer) — password `password123`.
+
+The frontend's API base defaults to `http://localhost:4000/api`; override in the
+browser with `localStorage.setItem('naukriplus_api', 'https://your-api/api')`.
+
+## Run (frontend only / offline)
+
+```bash
+# Any static server, or just open the file — falls back to mock data:
 python3 -m http.server 8000   # then visit http://localhost:8000
 ```

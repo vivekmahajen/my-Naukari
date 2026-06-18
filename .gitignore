@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Env / secrets
+.env
+server/.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# Local Postgres data (if initialized inside the repo)
+.pgdata/
