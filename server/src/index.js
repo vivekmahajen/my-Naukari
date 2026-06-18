@@ -224,6 +224,63 @@ app.post("/api/applications", authRequired, async (req, res) => {
   }
 });
 
+/* Employer ATS: applicants for one of my jobs */
+app.get("/api/employer/jobs/:id/applicants", authRequired, requireRole("employer"), async (req, res) => {
+  try {
+    const owns = await query("SELECT id, title FROM jobs WHERE id=$1 AND employer_id=$2", [req.params.id, req.user.id]);
+    if (!owns.rows[0]) return res.status(404).json({ error: "Job not found or not yours" });
+    const r = await query(
+      `SELECT a.id, a.stage, a.status, a.note, u.name, u.email,
+        floor(extract(epoch FROM now() - a.applied_at)/86400)::int AS applied_days
+       FROM applications a JOIN users u ON u.id = a.user_id
+       WHERE a.job_id = $1 ORDER BY a.status='active' DESC, a.stage DESC, a.applied_at DESC`,
+      [req.params.id]
+    );
+    res.json({
+      job: { id: String(owns.rows[0].id), title: owns.rows[0].title },
+      stages: STAGES,
+      applicants: r.rows.map((a) => ({
+        id: a.id, name: a.name, email: a.email,
+        stage: a.stage, status: a.status, note: a.note, appliedDays: a.applied_days,
+      })),
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to fetch applicants" });
+  }
+});
+
+/* Employer ATS: advance/update an applicant (only on jobs I own) */
+app.patch("/api/applications/:id", authRequired, requireRole("employer"), async (req, res) => {
+  let { stage, status, note } = req.body || {};
+  if (stage !== undefined && (stage < 0 || stage > STAGES.length - 1))
+    return res.status(400).json({ error: `stage must be 0..${STAGES.length - 1}` });
+  if (status !== undefined && !["active", "offer", "rejected"].includes(status))
+    return res.status(400).json({ error: "status must be active, offer or rejected" });
+  if (!note) {
+    note = status === "offer" ? "Offer extended 🎉"
+      : status === "rejected" ? "Not moving forward at this time"
+      : stage !== undefined ? `Moved to ${STAGES[stage]} stage` : null;
+  }
+  try {
+    const r = await query(
+      `UPDATE applications a
+         SET stage  = COALESCE($1, a.stage),
+             status = COALESCE($2, a.status),
+             note   = COALESCE($3, a.note)
+       FROM jobs j
+       WHERE a.id = $4 AND a.job_id = j.id AND j.employer_id = $5
+       RETURNING a.id, a.stage, a.status, a.note`,
+      [stage ?? null, status ?? null, note, req.params.id, req.user.id]
+    );
+    if (!r.rows[0]) return res.status(404).json({ error: "Application not found or not yours" });
+    res.json(r.rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to update application" });
+  }
+});
+
 /* ---------------- Boot ---------------- */
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Naukri+ API listening on http://localhost:${PORT}`));
