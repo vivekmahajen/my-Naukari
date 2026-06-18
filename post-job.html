@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post a job · Naukri+</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="logo" href="index.html">naukri<b>·</b><span class="plus">PLUS</span></a>
+      <nav class="nav-links">
+        <a href="jobs.html">Jobs</a>
+        <a href="dashboard.html">My applications</a>
+        <a href="post-job.html" class="active">Post a job</a>
+      </nav>
+      <div class="nav-spacer"></div>
+      <a class="btn btn-ghost btn-sm" href="jobs.html">View live jobs</a>
+    </div>
+  </header>
+
+  <div class="wrap" id="post-root">
+    <div class="dash-head">
+      <h1>Post a job</h1>
+      <p>Every Naukri+ listing requires a salary range and passes verification — that's why candidates trust them.</p>
+    </div>
+
+    <div class="post-grid">
+      <!-- FORM -->
+      <form class="panel" id="post-form">
+        <div class="verify-note" style="margin-bottom:18px">
+          🛡 <span>Listings are identity-verified &amp; fraud-scanned before going live. Toggle below to preview the verified badge candidates will see.</span>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Job title <span class="req">*</span></label>
+            <input name="title" required placeholder="e.g. Senior Frontend Engineer" />
+          </div>
+          <div class="form-row">
+            <label>Company <span class="req">*</span></label>
+            <input name="company" required placeholder="e.g. Acme Corp" />
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Location <span class="req">*</span></label>
+            <input name="location" required placeholder="e.g. Bengaluru" />
+          </div>
+          <div class="form-row">
+            <label>Work mode</label>
+            <select name="remote">
+              <option>On-site</option><option>Hybrid</option><option>Remote</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>Employment type</label>
+            <select name="type">
+              <option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Experience</label>
+            <input name="experience" placeholder="e.g. 3–6 yrs" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>Salary range — LPA <span class="req">*</span> <span class="muted">(mandatory — no hidden pay)</span></label>
+          <div class="form-grid-2">
+            <input name="salaryMin" type="number" min="1" required placeholder="Min e.g. 20" />
+            <input name="salaryMax" type="number" min="1" required placeholder="Max e.g. 35" />
+          </div>
+          <p class="hint">Unlike other portals, salary is required. Listings without pay are not allowed.</p>
+        </div>
+
+        <div class="form-row">
+          <label>Key skills <span class="muted">(comma-separated)</span></label>
+          <input name="skills" placeholder="React, TypeScript, System Design" />
+        </div>
+
+        <div class="form-row">
+          <label class="check" style="font-weight:700">
+            <input type="checkbox" name="verify" checked /> Complete employer verification (recommended)
+          </label>
+          <p class="hint">Verified employers get the green badge and 3× more applicants.</p>
+        </div>
+
+        <button class="btn btn-primary btn-block" type="submit">Submit for verification</button>
+      </form>
+
+      <!-- LIVE PREVIEW -->
+      <aside class="post-preview">
+        <div class="lbl">Live preview — how candidates see it</div>
+        <div id="post-preview"></div>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap foot-bottom" style="border:0;padding-top:0">© 2026 Naukri+ · Prototype for demonstration.</div>
+  </footer>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

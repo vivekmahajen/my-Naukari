@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Naukri+ · The honest job platform</title>
+  <meta name="description" content="A job platform that fixes what Naukri gets wrong: verified employers, transparent salaries, explainable matches, and real application tracking." />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="logo" href="index.html">naukri<b>·</b><span class="plus">PLUS</span></a>
+      <nav class="nav-links">
+        <a href="jobs.html" class="active">Jobs</a>
+        <a href="dashboard.html">My applications</a>
+        <a href="post-job.html">Post a job</a>
+        <a href="#why">Why Naukri+</a>
+      </nav>
+      <div class="nav-spacer"></div>
+      <a class="btn btn-ghost btn-sm" href="dashboard.html">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="jobs.html">Find jobs</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow" style="color:#9ec9ff">Built better, by design</span>
+      <h1>The job search that's actually on your side.</h1>
+      <p class="sub">Verified employers. Salaries shown upfront. Matches you can understand. And you'll always know where your application stands.</p>
+
+      <form id="home-search" class="search-bar">
+        <label class="field">
+          <span class="icon">🔍</span>
+          <input id="home-q" type="text" placeholder="Job title, skill or company" />
+        </label>
+        <label class="field">
+          <span class="icon">📍</span>
+          <input id="home-loc" type="text" placeholder="City" />
+        </label>
+        <button class="btn btn-primary" type="submit">Search jobs</button>
+      </form>
+
+      <div class="trust-row">
+        <div class="stat"><b>100%</b><span>Salaries shown</span></div>
+        <div class="stat"><b>Verified</b><span>Employers only*</span></div>
+        <div class="stat"><b>0</b><span>Black-hole applications</span></div>
+        <div class="stat"><b>Explainable</b><span>AI matching</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY / DIFFERENTIATORS -->
+  <section class="block" id="why">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">What we fixed</span>
+        <h2>Everything job seekers complain about — solved</h2>
+        <p>We analyzed real reviews of Naukri and competitors. These are the six gaps we closed.</p>
+      </div>
+      <div class="grid grid-3">
+        <div class="feature">
+          <div class="ic">✓</div>
+          <h3>Verified employers</h3>
+          <p>Every employer is identity-checked and listings are auto-scanned for fee-fraud patterns.</p>
+          <p class="vs"><s>Naukri: spam & fake listings</s> → Naukri+: verified badge</p>
+        </div>
+        <div class="feature">
+          <div class="ic">🎯</div>
+          <h3>Explainable matches</h3>
+          <p>Every match comes with a score <i>and</i> the reason — no more irrelevant recommendations.</p>
+          <p class="vs"><s>Naukri: random suggestions</s> → Naukri+: "why this matched"</p>
+        </div>
+        <div class="feature">
+          <div class="ic">📊</div>
+          <h3>Application tracking</h3>
+          <p>See every stage: Applied → Viewed → Shortlisted → Interview → Decision. Live.</p>
+          <p class="vs"><s>Naukri: silence after apply</s> → Naukri+: real-time status</p>
+        </div>
+        <div class="feature">
+          <div class="ic">💰</div>
+          <h3>Salary always shown</h3>
+          <p>Mandatory salary ranges on every single listing. No "as per industry standards".</p>
+          <p class="vs"><s>Naukri: hidden pay</s> → Naukri+: ₹ range on every card</p>
+        </div>
+        <div class="feature">
+          <div class="ic">🕒</div>
+          <h3>Fresh, deduped jobs</h3>
+          <p>Stale posts are flagged and auto-expired. Duplicates are merged automatically.</p>
+          <p class="vs"><s>Naukri: outdated reposts</s> → Naukri+: freshness badge</p>
+        </div>
+        <div class="feature">
+          <div class="ic">🛡</div>
+          <h3>You control contact</h3>
+          <p>In-app messaging with recruiters. No more spammy calls to your phone.</p>
+          <p class="vs"><s>Naukri: recruiter call spam</s> → Naukri+: contact controls</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED -->
+  <section class="block" style="background:#fff;border-top:1px solid var(--border)">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Picked for you</span>
+        <h2>Top matches, with the reasons attached</h2>
+        <p>Sorted by an explainable match score — not by who paid the most.</p>
+      </div>
+      <div class="grid grid-2" id="featured-jobs"></div>
+      <div class="center" style="margin-top:28px">
+        <a class="btn btn-primary" href="jobs.html">Browse all jobs →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="block">
+    <div class="wrap">
+      <div class="cta-band">
+        <h2>Ready for a fairer job search?</h2>
+        <p>Verified jobs, transparent pay, and an application tracker that actually works.</p>
+        <a class="btn btn-primary" href="jobs.html">Get started — it's free</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <a class="logo" href="index.html">naukri<b style="color:#9ec9ff">·</b><span class="plus">PLUS</span></a>
+          <p style="margin-top:12px;max-width:320px;font-size:14px">A demonstration rebuild of a job platform that preserves Naukri's identity while closing its biggest gaps. Built with the website-analyzer-builder workflow.</p>
+        </div>
+        <div><h4>For job seekers</h4><a href="jobs.html">Search jobs</a><a href="dashboard.html">My applications</a><a href="#why">Why Naukri+</a></div>
+        <div><h4>For employers</h4><a href="post-job.html">Post a job</a><a href="post-job.html">Verification</a><a href="#">Pricing</a></div>
+        <div><h4>Company</h4><a href="#">About</a><a href="#">Trust &amp; safety</a><a href="#">Contact</a></div>
+      </div>
+      <div class="foot-bottom wrap" style="padding-left:0;padding-right:0">
+        © 2026 Naukri+ · Prototype for demonstration. *Verification status shown per listing.
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
