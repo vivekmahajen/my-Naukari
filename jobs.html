@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search jobs · Naukri+</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="logo" href="index.html">naukri<b>·</b><span class="plus">PLUS</span></a>
+      <nav class="nav-links">
+        <a href="jobs.html" class="active">Jobs</a>
+        <a href="dashboard.html">My applications</a>
+        <a href="index.html#why">Why Naukri+</a>
+      </nav>
+      <div class="nav-spacer"></div>
+      <a class="btn btn-ghost btn-sm" href="dashboard.html">Sign in</a>
+    </div>
+  </header>
+
+  <!-- compact search -->
+  <div style="background:var(--navy);padding:18px 0">
+    <div class="wrap">
+      <div class="search-bar" style="margin:0;max-width:none">
+        <label class="field"><span class="icon">🔍</span>
+          <input id="f-q" type="text" placeholder="Job title, skill or company" /></label>
+        <label class="field"><span class="icon">📍</span>
+          <input id="f-loc" type="text" placeholder="City" /></label>
+        <span class="btn btn-primary" style="cursor:default">Live results ↓</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="listing-wrap">
+      <!-- FILTERS -->
+      <aside class="filters">
+        <h4>Filters</h4>
+        <p class="muted" style="font-size:12.5px;margin-bottom:6px">Results update instantly.</p>
+
+        <div class="filter-group">
+          <div class="lbl">Trust</div>
+          <label class="check"><input type="checkbox" id="f-verified" /> Verified employers only</label>
+          <label class="check"><input type="checkbox" id="f-fresh" /> Posted in last 7 days</label>
+        </div>
+
+        <div class="filter-group">
+          <div class="lbl">Category</div>
+          <label class="check"><input type="checkbox" data-cat value="Engineering" /> Engineering</label>
+          <label class="check"><input type="checkbox" data-cat value="Design" /> Design</label>
+          <label class="check"><input type="checkbox" data-cat value="Data" /> Data</label>
+          <label class="check"><input type="checkbox" data-cat value="Marketing" /> Marketing</label>
+        </div>
+
+        <div class="filter-group">
+          <div class="lbl">Work mode</div>
+          <label class="check"><input type="checkbox" data-remote value="Remote" /> Remote</label>
+          <label class="check"><input type="checkbox" data-remote value="Hybrid" /> Hybrid</label>
+          <label class="check"><input type="checkbox" data-remote value="On-site" /> On-site</label>
+        </div>
+      </aside>
+
+      <!-- RESULTS -->
+      <main>
+        <div class="results-head">
+          <h2>Jobs <span class="count" id="result-count"></span></h2>
+          <span class="muted" style="font-size:13.5px">Sorted by match score</span>
+        </div>
+        <div class="job-list" id="job-list"></div>
+      </main>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap foot-bottom" style="border:0;padding-top:0">© 2026 Naukri+ · Prototype for demonstration.</div>
+  </footer>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
