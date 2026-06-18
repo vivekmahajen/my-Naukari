@@ -65,7 +65,8 @@ See `assets/css/styles.css` for tokens. Highlights:
 ├── index.html          # Landing
 ├── jobs.html           # Search + listings
 ├── job.html            # Job detail (?id=)
-├── dashboard.html      # Application tracker
+├── dashboard.html      # Candidate application tracker
+├── employer.html       # Employer ATS dashboard (applicants per job)
 ├── post-job.html       # Employer posting page
 ├── assets/
 │   ├── css/styles.css  # Design system
@@ -99,7 +100,9 @@ mock data when the API is unreachable, so the static site still works offline.
 | `GET`  | `/api/jobs` | – | List/search jobs (`?q=&location=&category=&remote=&verified=true&fresh=true`) |
 | `GET`  | `/api/jobs/:id` | – | Single job |
 | `POST` | `/api/jobs` | Employer | Post a job (salary range required) |
-| `GET`  | `/api/employer/jobs` | Employer | My posted jobs |
+| `GET`  | `/api/employer/jobs` | Employer | My posted jobs (with live applicant counts) |
+| `GET`  | `/api/employer/jobs/:id/applicants` | Employer | Applicants for one of my jobs (ATS) |
+| `PATCH`| `/api/applications/:id` | Employer | Move an applicant's stage/status (syncs to candidate) |
 | `GET`  | `/api/applications` | Bearer | My applications + live stages |
 | `POST` | `/api/applications` | Bearer | Apply to a job (deduped) |
 

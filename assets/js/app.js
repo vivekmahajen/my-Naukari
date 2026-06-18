@@ -518,6 +518,120 @@ function postSuccess() {
     </div>`;
 }
 
+/* ---------- Employer ATS dashboard ---------- */
+async function renderEmployer() {
+  const root = document.getElementById("employer-root");
+  if (!root) return;
+
+  const user = getUser();
+  if (!user || user.role !== "employer") {
+    root.innerHTML = `<div class="panel center" style="max-width:480px;margin:32px auto">
+      <h2>Sign in as an employer</h2>
+      <p class="muted" style="margin:8px 0 16px">The ATS dashboard is for employer accounts. Post jobs and manage your candidate pipeline here.</p>
+      <button class="btn btn-primary" onclick="openAuthModal('employer')">Sign in / create employer account</button></div>`;
+    return;
+  }
+
+  let jobs;
+  try { jobs = await api("/employer/jobs"); }
+  catch (err) {
+    root.innerHTML = `<div class="panel center"><p>${isOffline(err) ? "API server is not running (cd server && npm start)." : err.message}</p></div>`;
+    return;
+  }
+
+  const totalApplicants = jobs.reduce((n, j) => n + j.applicants, 0);
+  const stats = `<div class="stat-cards">
+      <div class="stat-card"><b>${jobs.length}</b><span>Active postings</span></div>
+      <div class="stat-card"><b>${totalApplicants}</b><span>Total applicants</span></div>
+      <div class="stat-card"><b>${jobs.filter(j => j.verified).length}</b><span>Verified listings</span></div>
+      <div class="stat-card accent"><b>Live</b><span>Pipeline syncs to candidates</span></div>
+    </div>`;
+
+  if (!jobs.length) {
+    root.innerHTML = stats + `<div class="panel center" style="margin-top:20px"><h3>No postings yet</h3>
+      <p class="muted">Post your first job to start receiving applicants.</p>
+      <a class="btn btn-primary" href="post-job.html" style="margin-top:10px">Post a job</a></div>`;
+    return;
+  }
+
+  const cards = jobs.map(j => `
+    <div class="panel" style="margin-bottom:16px">
+      <div style="display:flex;gap:14px;align-items:center">
+        <div class="logo-box" style="background:${j.logoColor}">${j.logoText}</div>
+        <div style="flex:1">
+          <h3 style="font-size:17px">${j.title}</h3>
+          <div class="company">${j.location} · ${j.remote} · ${fmtSalary(j.salaryMin, j.salaryMax)} · ${verifiedBadge(j.verified)}</div>
+        </div>
+        <div class="match"><div class="ring" style="--p:100"><i>${j.applicants}</i></div><small>applicants</small></div>
+        <button class="btn btn-ghost btn-sm" onclick="atsToggle('${j.id}', this)">View applicants ▾</button>
+      </div>
+      <div id="ats-${j.id}" class="hide" style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px"></div>
+    </div>`).join("");
+
+  root.innerHTML = stats + `<h2 style="margin:24px 0 14px;font-size:20px">Your postings</h2>` + cards;
+}
+
+async function atsToggle(jobId, btn) {
+  const box = document.getElementById("ats-" + jobId);
+  if (!box.classList.contains("hide")) { box.classList.add("hide"); btn.textContent = "View applicants ▾"; return; }
+  box.classList.remove("hide");
+  btn.textContent = "Hide applicants ▴";
+  box.innerHTML = `<p class="muted">Loading applicants…</p>`;
+  try {
+    const data = await api(`/employer/jobs/${jobId}/applicants`);
+    atsRenderApplicants(jobId, data);
+  } catch (err) {
+    box.innerHTML = `<p class="muted">${err.message}</p>`;
+  }
+}
+
+function atsRenderApplicants(jobId, data) {
+  const box = document.getElementById("ats-" + jobId);
+  if (!data.applicants.length) { box.innerHTML = `<p class="muted">No applicants yet.</p>`; return; }
+
+  box.innerHTML = data.applicants.map(a => {
+    const statusBadge = a.status === "offer" ? `<span class="badge badge-verified">Offer</span>`
+      : a.status === "rejected" ? `<span class="badge badge-stale">Rejected</span>`
+      : `<span class="badge badge-soft">In pipeline</span>`;
+    const stageOpts = data.stages.map((s, i) => `<option value="${i}" ${i === a.stage ? "selected" : ""}>${s}</option>`).join("");
+    const statusOpts = ["active", "offer", "rejected"].map(s => `<option value="${s}" ${s === a.status ? "selected" : ""}>${s === "active" ? "In pipeline" : s}</option>`).join("");
+    return `
+    <div class="app-row" style="margin-bottom:12px">
+      <div class="top">
+        <div class="logo-box" style="background:var(--navy)">${(a.name[0] || "?").toUpperCase()}</div>
+        <div style="flex:1">
+          <h3 style="font-size:15px">${a.name} ${statusBadge}</h3>
+          <div class="company">${a.email} · Applied ${a.appliedDays === 0 ? "today" : a.appliedDays + "d ago"} · Stage: ${data.stages[a.stage]}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:12px">
+        <div class="form-row" style="margin:0">
+          <label style="font-size:12px">Stage</label>
+          <select id="stage-${a.id}" style="padding:7px 10px">${stageOpts}</select>
+        </div>
+        <div class="form-row" style="margin:0">
+          <label style="font-size:12px">Status</label>
+          <select id="status-${a.id}" style="padding:7px 10px">${statusOpts}</select>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="atsSave(${a.id}, '${jobId}')">Save & notify candidate</button>
+      </div>
+      <p class="muted" style="font-size:13px;margin-top:8px">📌 ${a.note || "—"}</p>
+    </div>`;
+  }).join("");
+}
+
+async function atsSave(appId, jobId) {
+  const stage = Number(document.getElementById("stage-" + appId).value);
+  const status = document.getElementById("status-" + appId).value;
+  try {
+    await api(`/applications/${appId}`, { method: "PATCH", body: { stage, status } });
+    const data = await api(`/employer/jobs/${jobId}/applicants`);
+    atsRenderApplicants(jobId, data);
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
 /* ---------- Boot ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   updateAuthUI();
@@ -527,4 +641,5 @@ document.addEventListener("DOMContentLoaded", () => {
   renderDashboard();
   initHomeSearch();
   initPostJob();
+  renderEmployer();
 });
