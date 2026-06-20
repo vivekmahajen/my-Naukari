@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find universities · Naukri+</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap nav">
+      <a class="logo" href="index.html">naukri<b>·</b><span class="plus">PLUS</span></a>
+      <nav class="nav-links">
+        <a href="jobs.html">Jobs</a>
+        <a href="universities.html" class="active">Universities</a>
+        <a href="dashboard.html">My applications</a>
+        <a href="index.html#why">Why Naukri+</a>
+      </nav>
+      <div class="nav-spacer"></div>
+      <span id="auth-slot" style="display:flex;gap:10px;align-items:center"></span>
+    </div>
+  </header>
+
+  <!-- search bar -->
+  <div style="background:var(--navy);padding:18px 0">
+    <div class="wrap">
+      <div class="search-bar" style="margin:0;max-width:none">
+        <label class="field"><span class="icon">🔍</span>
+          <input id="uni-q" type="text" placeholder="University name or city" /></label>
+        <label class="field"><span class="icon">📍</span>
+          <select id="uni-state"><option value="">All states</option></select></label>
+        <label class="field"><span class="icon">🏛</span>
+          <select id="uni-type"><option value="">All types</option></select></label>
+        <span class="btn btn-primary" style="cursor:default">Live results ↓</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="results-head">
+      <h2>Universities <span class="count" id="uni-count"></span></h2>
+      <span class="muted" style="font-size:13.5px">UGC-recognised institutions · potential employers</span>
+    </div>
+    <div class="job-list" id="uni-list"></div>
+    <div style="text-align:center;margin:24px 0">
+      <button id="uni-more" class="btn btn-ghost hide">Load more</button>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap foot-bottom" style="border:0;padding-top:0">© 2026 Naukri+ · Prototype for demonstration.</div>
+  </footer>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

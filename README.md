@@ -55,6 +55,7 @@ See `assets/css/styles.css` for tokens. Highlights:
 |------|----------------------|
 | `index.html` | Hero search, trust signals, differentiators vs Naukri, featured verified jobs |
 | `jobs.html` | Search + filters, match score, verified badge, salary, freshness on every card |
+| `universities.html` | Search the **1,247 UGC universities** by name, state and type (paged) |
 | `job.html` | Job detail with full **transparency panel** (applicants, salary, hiring timeline) |
 | `dashboard.html` | Candidate **application tracker** with live status stages |
 
@@ -64,6 +65,7 @@ See `assets/css/styles.css` for tokens. Highlights:
 .
 ├── index.html          # Landing
 ├── jobs.html           # Search + listings
+├── universities.html   # University directory search
 ├── job.html            # Job detail (?id=)
 ├── dashboard.html      # Candidate application tracker
 ├── employer.html       # Employer ATS dashboard (applicants per job)
@@ -111,6 +113,7 @@ mock data when the API is unreachable, so the static site still works offline.
 | `GET`  | `/api/applications` | Bearer | My applications + live stages |
 | `POST` | `/api/applications` | Bearer | Apply to a job (deduped) |
 | `GET`  | `/api/employers` | – | Potential-employer directory (`?q=&state=&type=&limit=&offset=`) |
+| `GET`  | `/api/employers/meta` | – | Distinct states & types (for dropdowns) |
 | `GET`  | `/api/employers/:id` | – | Single potential employer |
 | `GET`  | `/api/job-roles/categories` | – | Role categories with counts |
 | `GET`  | `/api/job-roles` | – | University leadership role catalog (`?q=&group=&category=&seniority=&status=`) |

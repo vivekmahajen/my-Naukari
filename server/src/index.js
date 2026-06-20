@@ -200,6 +200,17 @@ app.get("/api/employers", async (req, res) => {
   }
 });
 
+// Distinct filter values for building dropdowns (declared before :id route).
+app.get("/api/employers/meta", async (_req, res) => {
+  try {
+    const states = await query("SELECT DISTINCT state FROM employers WHERE state IS NOT NULL ORDER BY state");
+    const types = await query("SELECT DISTINCT type FROM employers WHERE type IS NOT NULL ORDER BY type");
+    res.json({ states: states.rows.map((r) => r.state), types: types.rows.map((r) => r.type) });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to fetch employer metadata" });
+  }
+});
+
 app.get("/api/employers/:id", async (req, res) => {
   try {
     const r = await query("SELECT * FROM employers WHERE id = $1", [req.params.id]);
