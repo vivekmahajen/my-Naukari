@@ -15,6 +15,23 @@ export const connectionString =
   process.env.POSTGRES_URL_NON_POOLING ||
   "";
 
+// node-postgres lets a `sslmode=...` query param in the connection string
+// OVERWRITE the ssl options object (see brianc/node-postgres#2375), which breaks
+// hosted certs with "self-signed certificate in certificate chain". Strip those
+// params and control SSL solely via the ssl option below.
+function stripSslParams(cs) {
+  if (!cs) return cs;
+  try {
+    const u = new URL(cs);
+    u.searchParams.delete("sslmode");
+    u.searchParams.delete("ssl");
+    u.searchParams.delete("channel_binding");
+    return u.toString();
+  } catch {
+    return cs.replace(/[?&](sslmode|ssl|channel_binding)=[^&]*/gi, "");
+  }
+}
+
 // Hosted Postgres (Neon, etc.) requires SSL; local development does not.
 // Override with PGSSL=disable / PGSSL=require if auto-detection is wrong.
 const isLocal = /@(localhost|127\.0\.0\.1)[:/]/.test(connectionString);
@@ -24,6 +41,6 @@ const ssl =
   : isLocal ? false
   : { rejectUnauthorized: false };
 
-export const pool = new Pool({ connectionString, ssl });
+export const pool = new Pool({ connectionString: stripSslParams(connectionString), ssl });
 
 export const query = (text, params) => pool.query(text, params);
