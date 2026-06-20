@@ -51,9 +51,16 @@ const JOB_SELECT = `
 app.get("/api/health", async (_req, res) => {
   try {
     await query("SELECT 1");
-    res.json({ ok: true, db: "up" });
-  } catch {
-    res.status(503).json({ ok: false, db: "down" });
+    res.json({ ok: true, db: "up", hasDatabaseUrl: !!process.env.DATABASE_URL });
+  } catch (e) {
+    // Safe diagnostics: never echoes the connection string, only whether it is
+    // present and the driver's error reason (e.g. ENOTFOUND, auth failed, SSL).
+    res.status(503).json({
+      ok: false,
+      db: "down",
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      reason: e.code || e.message,
+    });
   }
 });
 
