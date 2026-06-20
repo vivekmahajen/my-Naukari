@@ -7,10 +7,12 @@ This app is set up to deploy as:
   via `api/index.js` (requests to `/api/*` are routed to it by `vercel.json`).
 - **Database** — **Neon** serverless PostgreSQL.
 
-On every deploy, Vercel runs `npm run vercel-build` → `server/src/bootstrap.js`,
-which **migrates the schema, seeds demo data only if the DB is empty, then loads
-the 1,247 universities and 154 leadership roles**. It is idempotent, so it never
-wipes existing data on later deploys.
+Deployment is **zero-config**: static files at the repo root are served as-is,
+and `/api/*` is routed to the Express function (`api/index.js`) by `vercel.json`.
+The database is provisioned **once** with `npm run bootstrap` (step 4) — this is
+more reliable than seeding during the build and also validates your connection
+string. `bootstrap` is idempotent (migrate → seed only if empty → import the
+1,247 universities + 154 roles), so it's safe to re-run any time.
 
 ---
 
@@ -29,10 +31,12 @@ wipes existing data on later deploys.
 1. Sign in at <https://vercel.com> → **Add New… → Project** → import
    `vivekmahajen/my-naukari`.
 2. **Framework Preset:** `Other` (it's a static site + serverless functions).
-   Leave Build/Output settings as detected — `vercel.json` already sets the
-   build command. Do **not** set an Output Directory.
+   Leave Build & Output settings empty/default — `vercel.json` handles routing.
+   Do **not** set a Build Command or an Output Directory.
 
-## 3. Set Environment Variables (Production **and** Preview)
+## 3. Set Environment Variables — scope **Production** (and Preview)
+
+In **Settings → Environment Variables**, add (tick the **Production** box):
 
 | Name | Value |
 |------|-------|
@@ -40,18 +44,26 @@ wipes existing data on later deploys.
 | `JWT_SECRET` | a long random string (e.g. `openssl rand -hex 32`) |
 
 Notes:
-- `DATABASE_URL` must be set **before the first deploy** — the build step seeds
-  the database and will fail without it.
+- The name must be **exactly** `DATABASE_URL` (uppercase), and the **Production**
+  scope must be ticked — a push to `main` is a Production deploy.
+- After adding/changing env vars you must **redeploy** — existing deployments do
+  not pick up env changes.
 - `VERCEL` is set automatically by the platform; it tells the API not to start a
   local listener.
 - `CORS_ORIGIN` is **not** needed — the frontend and API share one origin.
 - SSL is auto-enabled for non-local databases (Neon). Override with
   `PGSSL=disable` / `PGSSL=require` only if needed.
 
-## 4. Deploy
+## 4. Seed the database (one time)
 
-Click **Deploy**. On the first build you should see the bootstrap output in the
-logs:
+From a clone of `main`, run the bootstrap against Neon. This also confirms your
+connection string is valid before you rely on it in Vercel:
+
+```bash
+npm install
+DATABASE_URL="<your-neon-pooled-url>" npm run bootstrap
+```
+You should see:
 ```
 ✓ Migration complete — tables ready.
 → Empty database — seeding demo data.
@@ -59,12 +71,17 @@ logs:
 ✓ Job roles import: 154 new ...
 ✓ Bootstrap complete.
 ```
-When it finishes, open the site:
-- `/` — landing
-- `/universities.html` — **search the 1,247 universities** (this is what you
-  wanted live after deploy)
-- `/jobs.html` — jobs
-- API health check: `/api/health`
+
+## 5. Deploy
+
+Click **Deploy** (or push to `main`). When it finishes, verify:
+- `/api/health` → **`{"ok":true,"db":"up"}`** (function runs and reaches the DB)
+- `/universities.html` → **search the 1,247 universities** (the goal)
+- `/` — landing · `/jobs.html` — jobs
+
+If `/api/health` shows source code or 404, the function isn't routing (check
+`vercel.json`). If it shows `{"ok":false,"db":"down"}`, the function runs but
+`DATABASE_URL` isn't set on the Production runtime (revisit step 3 + redeploy).
 
 Demo logins: `aarav@example.com` / `employer@acme.com` — password `password123`.
 

@@ -62,9 +62,10 @@ See `assets/css/styles.css` for tokens. Highlights:
 ## Deploy
 
 Ready for **Vercel** (static frontend + serverless API) + **Neon** (PostgreSQL).
-Every deploy runs `npm run vercel-build` → `server/src/bootstrap.js`, which
-migrates, seeds demo data only if the DB is empty, then loads the universities
-and role catalog (idempotent). See **[DEPLOY.md](DEPLOY.md)** for the full guide.
+Zero-config: static files are served from the root and `/api/*` is routed to the
+Express function (`api/index.js`). Provision the database once with
+`npm run bootstrap` (idempotent: migrate → seed-if-empty → import universities +
+roles). See **[DEPLOY.md](DEPLOY.md)** for the full guide.
 
 ## Project structure
 
