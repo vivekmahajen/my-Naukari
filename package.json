@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "bootstrap": "node server/src/bootstrap.js",
-    "vercel-build": "node server/src/bootstrap.js"
+    "vercel-build": "node server/src/vercel_build.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
