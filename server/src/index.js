@@ -175,6 +175,117 @@ app.get("/api/employer/jobs", authRequired, requireRole("employer"), async (req,
   }
 });
 
+/* ---------------- Employers directory (potential employers) ---------------- */
+app.get("/api/employers", async (req, res) => {
+  const { q, state, type } = req.query;
+  const limit = Math.min(Number(req.query.limit) || 50, 200);
+  const offset = Number(req.query.offset) || 0;
+  const clauses = [];
+  const vals = [];
+  if (q) { vals.push(`%${q}%`); clauses.push(`(name ILIKE $${vals.length} OR address ILIKE $${vals.length})`); }
+  if (state) { vals.push(state); clauses.push(`state = $${vals.length}`); }
+  if (type) { vals.push(type); clauses.push(`type = $${vals.length}`); }
+  const where = clauses.length ? "WHERE " + clauses.join(" AND ") : "";
+  try {
+    const total = await query(`SELECT count(*)::int AS n FROM employers ${where}`, vals);
+    const rows = await query(
+      `SELECT id, name, category, type, address, zip, state, ugc_status, source
+       FROM employers ${where} ORDER BY name LIMIT $${vals.length + 1} OFFSET $${vals.length + 2}`,
+      [...vals, limit, offset]
+    );
+    res.json({ total: total.rows[0].n, limit, offset, employers: rows.rows });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to fetch employers" });
+  }
+});
+
+app.get("/api/employers/:id", async (req, res) => {
+  try {
+    const r = await query("SELECT * FROM employers WHERE id = $1", [req.params.id]);
+    if (!r.rows[0]) return res.status(404).json({ error: "Employer not found" });
+    res.json(r.rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: "Failed to fetch employer" });
+  }
+});
+
+/* ---------------- University leadership role catalog ---------------- */
+// Categories with counts — handy for building category navigation in the UI.
+app.get("/api/job-roles/categories", async (_req, res) => {
+  try {
+    const r = await query(
+      `SELECT category_no, category_group, category,
+              count(*)::int AS roles,
+              count(*) FILTER (WHERE description_status = 'published')::int AS described
+       FROM job_roles GROUP BY category_no, category_group, category
+       ORDER BY category_no`
+    );
+    res.json({ categories: r.rows });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to fetch categories" });
+  }
+});
+
+app.get("/api/job-roles", async (req, res) => {
+  const { q, category, group, seniority, status } = req.query;
+  const limit = Math.min(Number(req.query.limit) || 200, 500);
+  const offset = Number(req.query.offset) || 0;
+  const clauses = [];
+  const vals = [];
+  if (q) { vals.push(`%${q}%`); clauses.push(`(title ILIKE $${vals.length} OR abbr ILIKE $${vals.length})`); }
+  if (category) { vals.push(category); clauses.push(`category = $${vals.length}`); }
+  if (group) { vals.push(group); clauses.push(`category_group = $${vals.length}`); }
+  if (seniority) { vals.push(seniority); clauses.push(`seniority = $${vals.length}`); }
+  if (status) { vals.push(status); clauses.push(`description_status = $${vals.length}`); }
+  const where = clauses.length ? "WHERE " + clauses.join(" AND ") : "";
+  try {
+    const total = await query(`SELECT count(*)::int AS n FROM job_roles ${where}`, vals);
+    const rows = await query(
+      `SELECT id, category_no, category_group, category, title, abbr, level, scope_note,
+              seniority, description, description_status
+       FROM job_roles ${where}
+       ORDER BY category_no, level NULLS LAST, title
+       LIMIT $${vals.length + 1} OFFSET $${vals.length + 2}`,
+      [...vals, limit, offset]
+    );
+    res.json({ total: total.rows[0].n, limit, offset, roles: rows.rows });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to fetch job roles" });
+  }
+});
+
+app.get("/api/job-roles/:id", async (req, res) => {
+  try {
+    const r = await query("SELECT * FROM job_roles WHERE id = $1", [req.params.id]);
+    if (!r.rows[0]) return res.status(404).json({ error: "Role not found" });
+    res.json(r.rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: "Failed to fetch role" });
+  }
+});
+
+// Fill in a role's description later. Empty/missing description resets to 'pending'.
+app.patch("/api/job-roles/:id", authRequired, requireRole("employer"), async (req, res) => {
+  const { description } = req.body || {};
+  const desc = typeof description === "string" && description.trim() ? description.trim() : null;
+  const status = desc ? "published" : "pending";
+  try {
+    const r = await query(
+      `UPDATE job_roles SET description = $1, description_status = $2
+       WHERE id = $3 RETURNING *`,
+      [desc, status, req.params.id]
+    );
+    if (!r.rows[0]) return res.status(404).json({ error: "Role not found" });
+    res.json(r.rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to update role" });
+  }
+});
+
 /* ---------------- Applications ---------------- */
 const STAGES = ["Applied", "Viewed", "Shortlisted", "Interview", "Decision"];
 

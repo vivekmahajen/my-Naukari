@@ -1,0 +1,1542 @@
+[
+{
+"category_no": 1,
+"category_group": "apex",
+"category": "Apex Leadership (University Level)",
+"title": "Chancellor",
+"abbr": null,
+"level": 1,
+"scope_note": "Ceremonial Head / Visitor equivalent in many universities",
+"seniority": "Apex"
+},
+{
+"category_no": 1,
+"category_group": "apex",
+"category": "Apex Leadership (University Level)",
+"title": "Pro-Chancellor",
+"abbr": null,
+"level": 2,
+"scope_note": "Assists Chancellor",
+"seniority": "Apex"
+},
+{
+"category_no": 1,
+"category_group": "apex",
+"category": "Apex Leadership (University Level)",
+"title": "Vice-Chancellor (VC)",
+"abbr": "VC",
+"level": 3,
+"scope_note": "Chief Academic & Executive Officer",
+"seniority": "Apex"
+},
+{
+"category_no": 1,
+"category_group": "apex",
+"category": "Apex Leadership (University Level)",
+"title": "Pro Vice-Chancellor (PVC)",
+"abbr": "PVC",
+"level": 4,
+"scope_note": "Supports VC",
+"seniority": "Apex"
+},
+{
+"category_no": 1,
+"category_group": "apex",
+"category": "Apex Leadership (University Level)",
+"title": "Rector",
+"abbr": null,
+"level": 5,
+"scope_note": "Present in some universities",
+"seniority": "Apex"
+},
+{
+"category_no": 1,
+"category_group": "apex",
+"category": "Apex Leadership (University Level)",
+"title": "Provost",
+"abbr": null,
+"level": 6,
+"scope_note": "Campus / Academic Head (common in private universities)",
+"seniority": "Apex"
+},
+{
+"category_no": 1,
+"category_group": "apex",
+"category": "Apex Leadership (University Level)",
+"title": "President",
+"abbr": null,
+"level": 7,
+"scope_note": "Used in some private universities",
+"seniority": "Apex"
+},
+{
+"category_no": 1,
+"category_group": "apex",
+"category": "Apex Leadership (University Level)",
+"title": "Executive President",
+"abbr": null,
+"level": 8,
+"scope_note": "Strategic institutional leadership",
+"seniority": "Apex"
+},
+{
+"category_no": 1,
+"category_group": "apex",
+"category": "Apex Leadership (University Level)",
+"title": "Chief Executive Officer (CEO)",
+"abbr": "CEO",
+"level": 9,
+"scope_note": "Used in some private university systems",
+"seniority": "Apex"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Academics",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Academic Affairs",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Research",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Research & Development",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Faculty Affairs",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean International Affairs",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Innovation & Entrepreneurship",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Examination",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Student Welfare",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Alumni Relations",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Outreach",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Planning & Development",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Quality Assurance",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Continuing Education",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Distance & Online Education",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Industry Interface",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Corporate Relations",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Skill Development",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Vocational Education",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Incubation & Startups",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 2,
+"category_group": "academic",
+"category": "Academic Leadership (University-Wide)",
+"title": "Dean Placement & Career Services",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Engineering",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Management",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Law",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Education",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Commerce",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Humanities",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Sciences",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Medical Sciences",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Pharmacy",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Nursing",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Agriculture",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Computer Applications",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Journalism",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 3,
+"category_group": "school",
+"category": "School / Faculty Leadership",
+"title": "Dean, School of Design",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 4,
+"category_group": "department",
+"category": "Department Leadership",
+"title": "Head of Department (HOD)",
+"abbr": "HOD",
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 4,
+"category_group": "department",
+"category": "Department Leadership",
+"title": "Chairperson",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 4,
+"category_group": "department",
+"category": "Department Leadership",
+"title": "Department Chair",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 4,
+"category_group": "department",
+"category": "Department Leadership",
+"title": "Programme Chair",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 4,
+"category_group": "department",
+"category": "Department Leadership",
+"title": "Programme Coordinator",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 4,
+"category_group": "department",
+"category": "Department Leadership",
+"title": "Course Coordinator",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 4,
+"category_group": "department",
+"category": "Department Leadership",
+"title": "Academic Coordinator",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Registrar",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Additional Registrar",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Joint Registrar",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Deputy Registrar",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Assistant Registrar",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Finance Officer",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Chief Finance Officer",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Controller of Examinations (COE)",
+"abbr": "COE",
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Additional Controller of Examinations",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Deputy Controller of Examinations",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Treasurer",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Legal Advisor",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Proctor",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Chief Proctor",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Librarian",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "University Engineer",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 5,
+"category_group": "administrative",
+"category": "Administrative Leadership",
+"title": "Estate Officer",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 6,
+"category_group": "research",
+"category": "Research Leadership",
+"title": "Dean Research",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 6,
+"category_group": "research",
+"category": "Research Leadership",
+"title": "Director Research",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 6,
+"category_group": "research",
+"category": "Research Leadership",
+"title": "Director Innovation",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 6,
+"category_group": "research",
+"category": "Research Leadership",
+"title": "Director Incubation",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 6,
+"category_group": "research",
+"category": "Research Leadership",
+"title": "Director IPR Cell",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 6,
+"category_group": "research",
+"category": "Research Leadership",
+"title": "Director Consultancy",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 6,
+"category_group": "research",
+"category": "Research Leadership",
+"title": "Director Sponsored Projects",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 6,
+"category_group": "research",
+"category": "Research Leadership",
+"title": "Director Centre of Excellence",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 6,
+"category_group": "research",
+"category": "Research Leadership",
+"title": "Director Technology Transfer",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 6,
+"category_group": "research",
+"category": "Research Leadership",
+"title": "Chairperson Research Council",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 7,
+"category_group": "student-affairs",
+"category": "Student Affairs Leadership",
+"title": "Dean Student Welfare",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 7,
+"category_group": "student-affairs",
+"category": "Student Affairs Leadership",
+"title": "Director Student Affairs",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 7,
+"category_group": "student-affairs",
+"category": "Student Affairs Leadership",
+"title": "Director Campus Life",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 7,
+"category_group": "student-affairs",
+"category": "Student Affairs Leadership",
+"title": "Director Sports",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 7,
+"category_group": "student-affairs",
+"category": "Student Affairs Leadership",
+"title": "Director Physical Education",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 7,
+"category_group": "student-affairs",
+"category": "Student Affairs Leadership",
+"title": "Director NCC",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 7,
+"category_group": "student-affairs",
+"category": "Student Affairs Leadership",
+"title": "Director NSS",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 7,
+"category_group": "student-affairs",
+"category": "Student Affairs Leadership",
+"title": "Director Hostel Administration",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 7,
+"category_group": "student-affairs",
+"category": "Student Affairs Leadership",
+"title": "Chief Warden",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 7,
+"category_group": "student-affairs",
+"category": "Student Affairs Leadership",
+"title": "Hostel Warden",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Department / Operational"
+},
+{
+"category_no": 7,
+"category_group": "student-affairs",
+"category": "Student Affairs Leadership",
+"title": "Director Counselling Services",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 8,
+"category_group": "online-digital",
+"category": "Online, ODL & Digital Education Leadership",
+"title": "Director – Centre for Distance and Online Education (CDOE)",
+"abbr": "CDOE",
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 8,
+"category_group": "online-digital",
+"category": "Online, ODL & Digital Education Leadership",
+"title": "Dean Distance Education",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 8,
+"category_group": "online-digital",
+"category": "Online, ODL & Digital Education Leadership",
+"title": "Dean Online Education",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 8,
+"category_group": "online-digital",
+"category": "Online, ODL & Digital Education Leadership",
+"title": "Director Online Programs",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 8,
+"category_group": "online-digital",
+"category": "Online, ODL & Digital Education Leadership",
+"title": "Director Digital Learning",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 8,
+"category_group": "online-digital",
+"category": "Online, ODL & Digital Education Leadership",
+"title": "Director Learning Experience",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 8,
+"category_group": "online-digital",
+"category": "Online, ODL & Digital Education Leadership",
+"title": "Director LMS Operations",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 8,
+"category_group": "online-digital",
+"category": "Online, ODL & Digital Education Leadership",
+"title": "Director e-Content Development",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 8,
+"category_group": "online-digital",
+"category": "Online, ODL & Digital Education Leadership",
+"title": "Director Academic Technology",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 8,
+"category_group": "online-digital",
+"category": "Online, ODL & Digital Education Leadership",
+"title": "Director Assessment & Proctoring",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 9,
+"category_group": "industry",
+"category": "Industry & Employability Leadership",
+"title": "Director Placements",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 9,
+"category_group": "industry",
+"category": "Industry & Employability Leadership",
+"title": "Director Career Services",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 9,
+"category_group": "industry",
+"category": "Industry & Employability Leadership",
+"title": "Director Corporate Relations",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 9,
+"category_group": "industry",
+"category": "Industry & Employability Leadership",
+"title": "Director Industry Engagement",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 9,
+"category_group": "industry",
+"category": "Industry & Employability Leadership",
+"title": "Director Apprenticeship Programs",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 9,
+"category_group": "industry",
+"category": "Industry & Employability Leadership",
+"title": "Director Employability",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 9,
+"category_group": "industry",
+"category": "Industry & Employability Leadership",
+"title": "Director Executive Education",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 9,
+"category_group": "industry",
+"category": "Industry & Employability Leadership",
+"title": "Director Continuing Education",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 10,
+"category_group": "accreditation",
+"category": "Accreditation & Quality Leadership",
+"title": "Director IQAC",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 10,
+"category_group": "accreditation",
+"category": "Accreditation & Quality Leadership",
+"title": "Director CIQA",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 10,
+"category_group": "accreditation",
+"category": "Accreditation & Quality Leadership",
+"title": "Dean Quality Assurance",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 10,
+"category_group": "accreditation",
+"category": "Accreditation & Quality Leadership",
+"title": "Director Accreditation",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 10,
+"category_group": "accreditation",
+"category": "Accreditation & Quality Leadership",
+"title": "Director NAAC",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 10,
+"category_group": "accreditation",
+"category": "Accreditation & Quality Leadership",
+"title": "Director NBA",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 10,
+"category_group": "accreditation",
+"category": "Accreditation & Quality Leadership",
+"title": "Director Ranking & Analytics",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 10,
+"category_group": "accreditation",
+"category": "Accreditation & Quality Leadership",
+"title": "Director NIRF",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 10,
+"category_group": "accreditation",
+"category": "Accreditation & Quality Leadership",
+"title": "Director Institutional Effectiveness",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director International Relations",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Admissions",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Marketing & Communications",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Branding",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Public Relations",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Outreach",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director CSR",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Sustainability",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director IT Services",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Chief Information Officer (CIO)",
+"abbr": "CIO",
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Chief Technology Officer (CTO)",
+"abbr": "CTO",
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Chief Digital Officer (CDO)",
+"abbr": "CDO",
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Chief Innovation Officer",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Chief Data Officer",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Leadership"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Analytics",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Data Governance",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Infrastructure",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Procurement",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Risk Management",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Compliance",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Fund Raising",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Alumni Relations",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Administration",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Human Resources",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Legal Affairs",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Estates",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Security",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Transport",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Health Services",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Library Services",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Physical Development",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Environment Management",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Innovation & Incubation",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Entrepreneurship",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Startup Ecosystem",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Community Engagement",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Cultural Affairs",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+},
+{
+"category_no": 11,
+"category_group": "specialized",
+"category": "Specialized Leadership Positions",
+"title": "Director Events & Protocol",
+"abbr": null,
+"level": null,
+"scope_note": null,
+"seniority": "Senior Management"
+}
+]
