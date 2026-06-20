@@ -5,7 +5,12 @@
    ============================================================ */
 
 /* ---------- Config & API client ---------- */
-const API_BASE = localStorage.getItem("naukriplus_api") || "http://localhost:4000/api";
+// Same-origin "/api" when deployed (Vercel); localhost API during local dev.
+const API_BASE = localStorage.getItem("naukriplus_api") || (
+  ["localhost", "127.0.0.1"].includes(location.hostname) || location.protocol === "file:"
+    ? "http://localhost:4000/api"
+    : "/api"
+);
 const LS_TOKEN = "naukriplus_token";
 const LS_USER  = "naukriplus_user";
 const LS_APPS  = "naukriplus_apps";   // offline-only fallback store

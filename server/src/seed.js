@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { fileURLToPath } from "url";
 import { pool } from "./db.js";
 
 // Mirrors the original assets/js/data.js so the UI is unchanged after wiring.
@@ -22,7 +23,7 @@ const APPLICATIONS = [
   { jobIdx: 3, appliedDays: 15, stage: 4, status: "rejected", note: "Position filled — feedback: seeking more BI depth" },
 ];
 
-async function main() {
+export async function seed() {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -74,11 +75,12 @@ async function main() {
     throw e;
   } finally {
     client.release();
-    await pool.end();
   }
 }
 
-main().catch((e) => {
-  console.error("Seed failed:", e);
-  process.exit(1);
-});
+// Run + close the pool only when invoked directly (node src/seed.js).
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  seed()
+    .then(() => pool.end())
+    .catch((e) => { console.error("Seed failed:", e); process.exit(1); });
+}

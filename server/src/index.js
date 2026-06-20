@@ -404,5 +404,11 @@ app.patch("/api/applications/:id", authRequired, requireRole("employer"), async 
 });
 
 /* ---------------- Boot ---------------- */
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Naukri+ API listening on http://localhost:${PORT}`));
+// On serverless platforms (Vercel) the app is exported and invoked per-request,
+// so we only start a long-running listener when not running under Vercel.
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => console.log(`Naukri+ API listening on http://localhost:${PORT}`));
+}
+
+export default app;

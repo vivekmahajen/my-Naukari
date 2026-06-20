@@ -59,10 +59,20 @@ See `assets/css/styles.css` for tokens. Highlights:
 | `job.html` | Job detail with full **transparency panel** (applicants, salary, hiring timeline) |
 | `dashboard.html` | Candidate **application tracker** with live status stages |
 
+## Deploy
+
+Ready for **Vercel** (static frontend + serverless API) + **Neon** (PostgreSQL).
+Every deploy runs `npm run vercel-build` → `server/src/bootstrap.js`, which
+migrates, seeds demo data only if the DB is empty, then loads the universities
+and role catalog (idempotent). See **[DEPLOY.md](DEPLOY.md)** for the full guide.
+
 ## Project structure
 
 ```
 .
+├── vercel.json         # Vercel config (static + /api function + build)
+├── package.json        # Root deps for the serverless function & bootstrap
+├── api/index.js        # Vercel serverless entry (re-exports the Express app)
 ├── index.html          # Landing
 ├── jobs.html           # Search + listings
 ├── universities.html   # University directory search
@@ -87,6 +97,7 @@ See `assets/css/styles.css` for tokens. Highlights:
 │       ├── auth.js             # JWT helpers + middleware
 │       ├── migrate.js          # Schema
 │       ├── seed.js             # Demo data
+│       ├── bootstrap.js        # Idempotent migrate + seed-if-empty + imports
 │       ├── import_employers.js # Loads universities.json into employers
 │       └── import_job_roles.js # Loads university_roles.json into job_roles
 └── .claude/skills/website-analyzer-builder/SKILL.md

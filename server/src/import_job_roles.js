@@ -6,7 +6,7 @@ import { pool } from "./db.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, "..", "data", "university_roles.json");
 
-async function main() {
+export async function importJobRoles() {
   const list = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
   const client = await pool.connect();
   let inserted = 0;
@@ -33,10 +33,11 @@ async function main() {
   }
   const total = (await pool.query("SELECT count(*) FROM job_roles")).rows[0].count;
   console.log(`✓ Job roles import: ${inserted} new, ${list.length - inserted} already present. Total: ${total}.`);
-  await pool.end();
 }
 
-main().catch((e) => {
-  console.error("Job roles import failed:", e);
-  process.exit(1);
-});
+// Run + close the pool only when invoked directly.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  importJobRoles()
+    .then(() => pool.end())
+    .catch((e) => { console.error("Job roles import failed:", e); process.exit(1); });
+}
