@@ -1,5 +1,5 @@
 import { fileURLToPath } from "url";
-import { pool } from "./db.js";
+import { pool, connectionString } from "./db.js";
 import { migrate } from "./migrate.js";
 import { seed } from "./seed.js";
 import { importEmployers } from "./import_employers.js";
@@ -9,12 +9,12 @@ import { importJobRoles } from "./import_job_roles.js";
 // every deploy. Creates the schema, seeds demo data only when the DB is empty
 // (so real data is never wiped), then loads the universities + role catalog.
 export async function bootstrap() {
-  if (!process.env.DATABASE_URL) {
+  if (!connectionString) {
     throw new Error(
-      "DATABASE_URL is not set. Add your Neon *pooled* connection string to your " +
-      "host's Environment Variables (on Vercel: Settings → Environment Variables, " +
-      "with the Production scope ticked), then redeploy. Without it the Postgres " +
-      "client falls back to localhost:5432 and the build fails with ECONNREFUSED."
+      "No database connection string found. Set DATABASE_URL (or POSTGRES_URL) to " +
+      "your Neon *pooled* connection string in your host's Environment Variables " +
+      "(on Vercel: Settings → Environment Variables, Production scope ticked), then " +
+      "redeploy. Without it the Postgres client falls back to localhost:5432."
     );
   }
   await migrate();

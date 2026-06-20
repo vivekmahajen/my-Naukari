@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
-import { query } from "./db.js";
+import { query, connectionString } from "./db.js";
 import { signToken, authOptional, authRequired, requireRole } from "./auth.js";
 import { bootstrap } from "./bootstrap.js";
 
@@ -52,14 +52,14 @@ const JOB_SELECT = `
 app.get("/api/health", async (_req, res) => {
   try {
     await query("SELECT 1");
-    res.json({ ok: true, db: "up", hasDatabaseUrl: !!process.env.DATABASE_URL });
+    res.json({ ok: true, db: "up", hasDatabaseUrl: !!connectionString });
   } catch (e) {
     // Safe diagnostics: never echoes the connection string, only whether it is
     // present and the driver's error reason (e.g. ENOTFOUND, auth failed, SSL).
     res.status(503).json({
       ok: false,
       db: "down",
-      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      hasDatabaseUrl: !!connectionString,
       reason: e.code || e.message,
     });
   }
