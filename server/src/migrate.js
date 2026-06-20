@@ -48,8 +48,27 @@ CREATE TABLE IF NOT EXISTS applications (
   UNIQUE (user_id, job_id)
 );
 
+-- Directory of potential employers (e.g. universities). Distinct from registered
+-- employer user accounts in "users"; an entry can later be claimed by a user.
+CREATE TABLE IF NOT EXISTS employers (
+  id          SERIAL PRIMARY KEY,
+  name        TEXT NOT NULL,
+  category    TEXT NOT NULL DEFAULT 'University',
+  type        TEXT,                         -- e.g. State / Private / Central / Deemed
+  address     TEXT,
+  zip         TEXT,
+  state       TEXT,
+  ugc_status  TEXT,                         -- UGC recognition, e.g. 2(f), 12(B)
+  source      TEXT,
+  claimed_by  INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE INDEX IF NOT EXISTS idx_jobs_category ON jobs(category);
 CREATE INDEX IF NOT EXISTS idx_apps_user ON applications(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_employers_name ON employers (lower(name));
+CREATE INDEX IF NOT EXISTS idx_employers_state ON employers (state);
+CREATE INDEX IF NOT EXISTS idx_employers_type ON employers (type);
 `;
 
 async function main() {

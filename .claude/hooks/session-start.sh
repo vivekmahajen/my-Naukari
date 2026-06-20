@@ -56,6 +56,10 @@ else
   log "Data already present (${JOB_COUNT} jobs) — skipping seed."
 fi
 
+# Import potential-employer directory (universities); idempotent (ON CONFLICT DO NOTHING).
+log "Importing employer directory..."
+npm run import:employers
+
 # 6. Start the API in the background if it is not already serving.
 if curl -sf http://localhost:4000/api/health >/dev/null 2>&1; then
   log "API already running on :4000."

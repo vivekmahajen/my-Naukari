@@ -76,12 +76,15 @@ See `assets/css/styles.css` for tokens. Highlights:
 ├── server/             # Express + PostgreSQL + JWT API
 │   ├── package.json
 │   ├── .env.example
+│   ├── data/
+│   │   └── universities.json   # 1,247 UGC universities (potential employers)
 │   └── src/
-│       ├── index.js    # Routes
-│       ├── db.js       # pg pool
-│       ├── auth.js     # JWT helpers + middleware
-│       ├── migrate.js  # Schema
-│       └── seed.js     # Demo data
+│       ├── index.js            # Routes
+│       ├── db.js               # pg pool
+│       ├── auth.js             # JWT helpers + middleware
+│       ├── migrate.js          # Schema
+│       ├── seed.js             # Demo data
+│       └── import_employers.js # Loads universities.json into employers
 └── .claude/skills/website-analyzer-builder/SKILL.md
 ```
 
@@ -105,11 +108,16 @@ mock data when the API is unreachable, so the static site still works offline.
 | `PATCH`| `/api/applications/:id` | Employer | Move an applicant's stage/status (syncs to candidate) |
 | `GET`  | `/api/applications` | Bearer | My applications + live stages |
 | `POST` | `/api/applications` | Bearer | Apply to a job (deduped) |
+| `GET`  | `/api/employers` | – | Potential-employer directory (`?q=&state=&type=&limit=&offset=`) |
+| `GET`  | `/api/employers/:id` | – | Single potential employer |
 
 ### Database schema
 
 `users` (candidate/employer + bcrypt hash) · `jobs` (salary required by CHECK
-constraint) · `applications` (unique per user+job, stage/status tracking).
+constraint) · `applications` (unique per user+job, stage/status tracking) ·
+`employers` (directory of **potential employers** such as universities; unique on
+`lower(name)`, claimable by a user). Seeded from `server/data/universities.json`
+(1,247 UGC-listed universities) via `npm run import:employers` — idempotent.
 
 ### Setup & run
 

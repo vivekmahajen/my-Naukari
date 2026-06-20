@@ -9,7 +9,8 @@
     "dev": "node --watch src/index.js",
     "migrate": "node src/migrate.js",
     "seed": "node src/seed.js",
-    "setup": "npm run migrate && npm run seed",
+    "import:employers": "node src/import_employers.js",
+    "setup": "npm run migrate && npm run seed && npm run import:employers",
     "test": "node test/smoke.js"
   },
   "dependencies": {

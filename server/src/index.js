@@ -175,6 +175,41 @@ app.get("/api/employer/jobs", authRequired, requireRole("employer"), async (req,
   }
 });
 
+/* ---------------- Employers directory (potential employers) ---------------- */
+app.get("/api/employers", async (req, res) => {
+  const { q, state, type } = req.query;
+  const limit = Math.min(Number(req.query.limit) || 50, 200);
+  const offset = Number(req.query.offset) || 0;
+  const clauses = [];
+  const vals = [];
+  if (q) { vals.push(`%${q}%`); clauses.push(`(name ILIKE $${vals.length} OR address ILIKE $${vals.length})`); }
+  if (state) { vals.push(state); clauses.push(`state = $${vals.length}`); }
+  if (type) { vals.push(type); clauses.push(`type = $${vals.length}`); }
+  const where = clauses.length ? "WHERE " + clauses.join(" AND ") : "";
+  try {
+    const total = await query(`SELECT count(*)::int AS n FROM employers ${where}`, vals);
+    const rows = await query(
+      `SELECT id, name, category, type, address, zip, state, ugc_status, source
+       FROM employers ${where} ORDER BY name LIMIT $${vals.length + 1} OFFSET $${vals.length + 2}`,
+      [...vals, limit, offset]
+    );
+    res.json({ total: total.rows[0].n, limit, offset, employers: rows.rows });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to fetch employers" });
+  }
+});
+
+app.get("/api/employers/:id", async (req, res) => {
+  try {
+    const r = await query("SELECT * FROM employers WHERE id = $1", [req.params.id]);
+    if (!r.rows[0]) return res.status(404).json({ error: "Employer not found" });
+    res.json(r.rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: "Failed to fetch employer" });
+  }
+});
+
 /* ---------------- Applications ---------------- */
 const STAGES = ["Applied", "Viewed", "Shortlisted", "Interview", "Decision"];
 
