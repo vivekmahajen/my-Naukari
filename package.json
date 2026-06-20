@@ -5,8 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "bootstrap": "node server/src/bootstrap.js",
-    "vercel-build": "node server/src/vercel_build.js"
+    "bootstrap": "node server/src/bootstrap.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
