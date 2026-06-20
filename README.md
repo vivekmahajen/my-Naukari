@@ -77,14 +77,16 @@ See `assets/css/styles.css` for tokens. Highlights:
 │   ├── package.json
 │   ├── .env.example
 │   ├── data/
-│   │   └── universities.json   # 1,247 UGC universities (potential employers)
+│   │   ├── universities.json   # 1,247 UGC universities (potential employers)
+│   │   └── university_roles.json # 154 leadership role templates
 │   └── src/
 │       ├── index.js            # Routes
 │       ├── db.js               # pg pool
 │       ├── auth.js             # JWT helpers + middleware
 │       ├── migrate.js          # Schema
 │       ├── seed.js             # Demo data
-│       └── import_employers.js # Loads universities.json into employers
+│       ├── import_employers.js # Loads universities.json into employers
+│       └── import_job_roles.js # Loads university_roles.json into job_roles
 └── .claude/skills/website-analyzer-builder/SKILL.md
 ```
 
@@ -110,6 +112,10 @@ mock data when the API is unreachable, so the static site still works offline.
 | `POST` | `/api/applications` | Bearer | Apply to a job (deduped) |
 | `GET`  | `/api/employers` | – | Potential-employer directory (`?q=&state=&type=&limit=&offset=`) |
 | `GET`  | `/api/employers/:id` | – | Single potential employer |
+| `GET`  | `/api/job-roles/categories` | – | Role categories with counts |
+| `GET`  | `/api/job-roles` | – | University leadership role catalog (`?q=&group=&category=&seniority=&status=`) |
+| `GET`  | `/api/job-roles/:id` | – | Single role |
+| `PATCH`| `/api/job-roles/:id` | Employer | Fill in a role's description later |
 
 ### Database schema
 
@@ -118,6 +124,14 @@ constraint) · `applications` (unique per user+job, stage/status tracking) ·
 `employers` (directory of **potential employers** such as universities; unique on
 `lower(name)`, claimable by a user). Seeded from `server/data/universities.json`
 (1,247 UGC-listed universities) via `npm run import:employers` — idempotent.
+
+`job_roles` (catalog of **154 standard university leadership positions** across 11
+categories — Apex, Academic, School/Faculty, Department, Administrative, Research,
+Student Affairs, Online/ODL, Industry, Accreditation, Specialized). Reusable role
+templates; `description` is **nullable by design and added later**, with a
+`description_status` workflow (`pending → draft → published`). Seeded from
+`server/data/university_roles.json` via `npm run import:roles` — idempotent and
+never overwrites a description that was filled in later.
 
 ### Setup & run
 

@@ -10,7 +10,8 @@
     "migrate": "node src/migrate.js",
     "seed": "node src/seed.js",
     "import:employers": "node src/import_employers.js",
-    "setup": "npm run migrate && npm run seed && npm run import:employers",
+    "import:roles": "node src/import_job_roles.js",
+    "setup": "npm run migrate && npm run seed && npm run import:employers && npm run import:roles",
     "test": "node test/smoke.js"
   },
   "dependencies": {
