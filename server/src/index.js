@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import { query } from "./db.js";
 import { signToken, authOptional, authRequired, requireRole } from "./auth.js";
+import { bootstrap } from "./bootstrap.js";
 
 dotenv.config();
 
@@ -61,6 +62,29 @@ app.get("/api/health", async (_req, res) => {
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       reason: e.code || e.message,
     });
+  }
+});
+
+/* One-time DB provisioning, triggerable from a browser so no local tooling is
+   needed. Protected by a secret key (?key=… or x-seed-key header) matching
+   SEED_KEY (falls back to JWT_SECRET). Idempotent: safe to call more than once. */
+app.all("/api/admin/seed", async (req, res) => {
+  const provided = req.query.key || req.get("x-seed-key");
+  const expected = process.env.SEED_KEY || process.env.JWT_SECRET;
+  if (!expected || provided !== expected) {
+    return res.status(401).json({ ok: false, error: "Invalid or missing seed key" });
+  }
+  try {
+    await bootstrap();
+    const counts = {
+      jobs: (await query("SELECT count(*)::int AS n FROM jobs")).rows[0].n,
+      employers: (await query("SELECT count(*)::int AS n FROM employers")).rows[0].n,
+      job_roles: (await query("SELECT count(*)::int AS n FROM job_roles")).rows[0].n,
+    };
+    res.json({ ok: true, counts });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, error: e.message });
   }
 });
 

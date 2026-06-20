@@ -1,13 +1,9 @@
-import fs from "fs";
-import path from "path";
 import { fileURLToPath } from "url";
 import { pool } from "./db.js";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_FILE = path.join(__dirname, "..", "data", "university_roles.json");
+// Imported as a module so it is bundled into the Vercel serverless function.
+import list from "../data/university_roles.json" with { type: "json" };
 
 export async function importJobRoles() {
-  const list = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
   const client = await pool.connect();
   let inserted = 0;
   try {
