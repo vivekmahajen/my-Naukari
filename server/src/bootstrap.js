@@ -9,6 +9,14 @@ import { importJobRoles } from "./import_job_roles.js";
 // every deploy. Creates the schema, seeds demo data only when the DB is empty
 // (so real data is never wiped), then loads the universities + role catalog.
 export async function bootstrap() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error(
+      "DATABASE_URL is not set. Add your Neon *pooled* connection string to your " +
+      "host's Environment Variables (on Vercel: Settings → Environment Variables, " +
+      "with the Production scope ticked), then redeploy. Without it the Postgres " +
+      "client falls back to localhost:5432 and the build fails with ECONNREFUSED."
+    );
+  }
   await migrate();
 
   const { rows } = await pool.query("SELECT count(*)::int AS n FROM jobs");
