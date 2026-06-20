@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, "..", "data", "universities.json");
 const SOURCE = "UGC consolidated list 2026";
 
-async function main() {
+export async function importEmployers() {
   const list = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
   const client = await pool.connect();
   let inserted = 0;
@@ -32,10 +32,11 @@ async function main() {
   }
   const total = (await pool.query("SELECT count(*) FROM employers")).rows[0].count;
   console.log(`✓ Employers import: ${inserted} new, ${list.length - inserted} already present. Total: ${total}.`);
-  await pool.end();
 }
 
-main().catch((e) => {
-  console.error("Employers import failed:", e);
-  process.exit(1);
-});
+// Run + close the pool only when invoked directly.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  importEmployers()
+    .then(() => pool.end())
+    .catch((e) => { console.error("Employers import failed:", e); process.exit(1); });
+}

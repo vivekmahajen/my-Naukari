@@ -5,7 +5,12 @@
    ============================================================ */
 
 /* ---------- Config & API client ---------- */
-const API_BASE = localStorage.getItem("naukriplus_api") || "http://localhost:4000/api";
+// Same-origin "/api" when deployed (Vercel); localhost API during local dev.
+const API_BASE = localStorage.getItem("naukriplus_api") || (
+  ["localhost", "127.0.0.1"].includes(location.hostname) || location.protocol === "file:"
+    ? "http://localhost:4000/api"
+    : "/api"
+);
 const LS_TOKEN = "naukriplus_token";
 const LS_USER  = "naukriplus_user";
 const LS_APPS  = "naukriplus_apps";   // offline-only fallback store
@@ -632,6 +637,97 @@ async function atsSave(appId, jobId) {
   }
 }
 
+/* ---------- Universities (potential employers) directory ---------- */
+const UNI_PALETTE = ["#1875e5", "#e23744", "#12283f", "#fc8019", "#9c1ab1", "#00b386", "#387ed1", "#b9770f"];
+const uniColor = name => UNI_PALETTE[[...(name || "?")].reduce((h, c) => h + c.charCodeAt(0), 0) % UNI_PALETTE.length];
+const uniInitials = name => (name || "?").replace(/[^A-Za-z ]/g, "").split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("") || "U";
+const shortType = t => (t || "").replace("Deemed to be Universities", "Deemed");
+
+const uniState = { q: "", state: "", type: "", offset: 0, limit: 24, total: 0 };
+let uniTimer;
+
+async function fetchEmployers(params = {}) {
+  const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v !== "" && v != null));
+  return api("/employers" + (qs.toString() ? "?" + qs : ""));
+}
+
+function uniCard(e) {
+  const loc = [e.state].filter(Boolean).join("");
+  return `
+  <div class="job-card" style="cursor:default">
+    <div class="top">
+      <div class="logo-box" style="background:${uniColor(e.name)}">${uniInitials(e.name)}</div>
+      <div style="flex:1">
+        <h3>${e.name}</h3>
+        <div class="company">${loc || "India"}${e.zip ? " · " + e.zip : ""}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <span class="badge badge-soft">${shortType(e.type) || "University"}</span>
+          ${e.ugc_status ? `<span class="badge badge-verified" title="UGC recognition status">UGC ${e.ugc_status}</span>` : ""}
+        </div>
+      </div>
+    </div>
+    ${e.address ? `<p class="muted" style="font-size:13.5px;margin-top:10px">📍 ${e.address}</p>` : ""}
+  </div>`;
+}
+
+async function renderUniversities(append = false) {
+  const list = document.getElementById("uni-list");
+  if (!list) return;
+  const countEl = document.getElementById("uni-count");
+  if (!append) { uniState.offset = 0; list.innerHTML = `<p class="muted">Searching…</p>`; }
+
+  let data;
+  try {
+    data = await fetchEmployers({ q: uniState.q, state: uniState.state, type: uniState.type, limit: uniState.limit, offset: uniState.offset });
+  } catch (err) {
+    list.innerHTML = `<div class="panel center"><h3>${isOffline(err) ? "API server is not running" : "Something went wrong"}</h3>
+      <p class="muted">${isOffline(err) ? "Start it with: cd server && npm start" : err.message}</p></div>`;
+    return;
+  }
+
+  uniState.total = data.total;
+  const cards = data.employers.map(uniCard).join("");
+  if (append) list.insertAdjacentHTML("beforeend", cards);
+  else list.innerHTML = data.employers.length ? cards : `<div class="panel center"><h3>No universities match your search</h3><p class="muted">Try a different name, state or type.</p></div>`;
+
+  if (countEl) countEl.textContent = `${data.total.toLocaleString()} universit${data.total === 1 ? "y" : "ies"}`;
+
+  const shown = uniState.offset + data.employers.length;
+  const more = document.getElementById("uni-more");
+  if (more) {
+    more.classList.toggle("hide", shown >= data.total);
+    more.textContent = `Load more (${shown.toLocaleString()} of ${data.total.toLocaleString()})`;
+  }
+}
+const debouncedUni = () => { clearTimeout(uniTimer); uniTimer = setTimeout(() => renderUniversities(false), 220); };
+
+async function initUniversities() {
+  const list = document.getElementById("uni-list");
+  if (!list) return;
+
+  // Populate state/type dropdowns from live data so they match exactly.
+  try {
+    const meta = await api("/employers/meta");
+    const stateSel = document.getElementById("uni-state");
+    const typeSel = document.getElementById("uni-type");
+    if (stateSel) stateSel.insertAdjacentHTML("beforeend", meta.states.map(s => `<option value="${s}">${s}</option>`).join(""));
+    if (typeSel) typeSel.insertAdjacentHTML("beforeend", meta.types.map(t => `<option value="${t}">${shortType(t)}</option>`).join(""));
+  } catch { /* dropdowns stay as "All"; free-text search still works */ }
+
+  const p = new URLSearchParams(location.search);
+  uniState.q = p.get("q") || "";
+  const qi = document.getElementById("uni-q");
+  if (qi) { qi.value = uniState.q; qi.addEventListener("input", e => { uniState.q = e.target.value.trim(); debouncedUni(); }); }
+  const ss = document.getElementById("uni-state");
+  ss && ss.addEventListener("change", e => { uniState.state = e.target.value; renderUniversities(false); });
+  const ts = document.getElementById("uni-type");
+  ts && ts.addEventListener("change", e => { uniState.type = e.target.value; renderUniversities(false); });
+  const more = document.getElementById("uni-more");
+  more && more.addEventListener("click", () => { uniState.offset += uniState.limit; renderUniversities(true); });
+
+  renderUniversities(false);
+}
+
 /* ---------- Boot ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   updateAuthUI();
@@ -642,4 +738,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initHomeSearch();
   initPostJob();
   renderEmployer();
+  initUniversities();
 });

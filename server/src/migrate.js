@@ -1,3 +1,4 @@
+import { fileURLToPath } from "url";
 import { pool } from "./db.js";
 
 const SQL = `
@@ -94,13 +95,14 @@ CREATE INDEX IF NOT EXISTS idx_job_roles_group ON job_roles (category_group);
 CREATE INDEX IF NOT EXISTS idx_job_roles_status ON job_roles (description_status);
 `;
 
-async function main() {
+export async function migrate() {
   await pool.query(SQL);
   console.log("✓ Migration complete — tables ready.");
-  await pool.end();
 }
 
-main().catch((e) => {
-  console.error("Migration failed:", e);
-  process.exit(1);
-});
+// Run + close the pool only when invoked directly (node src/migrate.js).
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  migrate()
+    .then(() => pool.end())
+    .catch((e) => { console.error("Migration failed:", e); process.exit(1); });
+}

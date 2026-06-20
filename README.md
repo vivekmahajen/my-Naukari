@@ -55,15 +55,27 @@ See `assets/css/styles.css` for tokens. Highlights:
 |------|----------------------|
 | `index.html` | Hero search, trust signals, differentiators vs Naukri, featured verified jobs |
 | `jobs.html` | Search + filters, match score, verified badge, salary, freshness on every card |
+| `universities.html` | Search the **1,247 UGC universities** by name, state and type (paged) |
 | `job.html` | Job detail with full **transparency panel** (applicants, salary, hiring timeline) |
 | `dashboard.html` | Candidate **application tracker** with live status stages |
+
+## Deploy
+
+Ready for **Vercel** (static frontend + serverless API) + **Neon** (PostgreSQL).
+Every deploy runs `npm run vercel-build` → `server/src/bootstrap.js`, which
+migrates, seeds demo data only if the DB is empty, then loads the universities
+and role catalog (idempotent). See **[DEPLOY.md](DEPLOY.md)** for the full guide.
 
 ## Project structure
 
 ```
 .
+├── vercel.json         # Vercel config (static + /api function + build)
+├── package.json        # Root deps for the serverless function & bootstrap
+├── api/index.js        # Vercel serverless entry (re-exports the Express app)
 ├── index.html          # Landing
 ├── jobs.html           # Search + listings
+├── universities.html   # University directory search
 ├── job.html            # Job detail (?id=)
 ├── dashboard.html      # Candidate application tracker
 ├── employer.html       # Employer ATS dashboard (applicants per job)
@@ -85,6 +97,7 @@ See `assets/css/styles.css` for tokens. Highlights:
 │       ├── auth.js             # JWT helpers + middleware
 │       ├── migrate.js          # Schema
 │       ├── seed.js             # Demo data
+│       ├── bootstrap.js        # Idempotent migrate + seed-if-empty + imports
 │       ├── import_employers.js # Loads universities.json into employers
 │       └── import_job_roles.js # Loads university_roles.json into job_roles
 └── .claude/skills/website-analyzer-builder/SKILL.md
@@ -111,6 +124,7 @@ mock data when the API is unreachable, so the static site still works offline.
 | `GET`  | `/api/applications` | Bearer | My applications + live stages |
 | `POST` | `/api/applications` | Bearer | Apply to a job (deduped) |
 | `GET`  | `/api/employers` | – | Potential-employer directory (`?q=&state=&type=&limit=&offset=`) |
+| `GET`  | `/api/employers/meta` | – | Distinct states & types (for dropdowns) |
 | `GET`  | `/api/employers/:id` | – | Single potential employer |
 | `GET`  | `/api/job-roles/categories` | – | Role categories with counts |
 | `GET`  | `/api/job-roles` | – | University leadership role catalog (`?q=&group=&category=&seniority=&status=`) |

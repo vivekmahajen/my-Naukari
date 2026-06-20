@@ -12,6 +12,7 @@
     "import:employers": "node src/import_employers.js",
     "import:roles": "node src/import_job_roles.js",
     "setup": "npm run migrate && npm run seed && npm run import:employers && npm run import:roles",
+    "bootstrap": "node src/bootstrap.js",
     "test": "node test/smoke.js"
   },
   "dependencies": {
