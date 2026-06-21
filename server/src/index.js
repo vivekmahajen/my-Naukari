@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import { query, connectionString } from "./db.js";
 import { signToken, authOptional, authRequired, requireRole } from "./auth.js";
 import { bootstrap } from "./bootstrap.js";
+import { migrate } from "./migrate.js";
+import { seedCandidates, CANDIDATE_PASSWORD } from "./seed_candidates.js";
 
 dotenv.config();
 
@@ -91,6 +93,21 @@ app.all("/api/admin/seed", async (req, res) => {
       job_roles: (await query("SELECT count(*)::int AS n FROM job_roles")).rows[0].n,
     };
     res.json({ ok: true, counts });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/* Create the 5 demo candidates (idempotent). Same SEED_KEY protection. */
+app.all("/api/admin/seed-candidates", async (req, res) => {
+  const expected = process.env.SEED_KEY;
+  if (!expected) return res.status(403).json({ ok: false, error: "Seeding is disabled. Set a SEED_KEY env var to enable it." });
+  if ((req.query.key || req.get("x-seed-key")) !== expected) return res.status(401).json({ ok: false, error: "Invalid or missing seed key" });
+  try {
+    await migrate();                 // ensure the candidate profile columns exist
+    const candidates = await seedCandidates();
+    res.json({ ok: true, password: CANDIDATE_PASSWORD, candidates });
   } catch (e) {
     console.error(e);
     res.status(500).json({ ok: false, error: e.message });
@@ -416,6 +433,7 @@ app.get("/api/employer/jobs/:id/applicants", authRequired, requireRole("employer
     if (!owns.rows[0]) return res.status(404).json({ error: "Job not found or not yours" });
     const r = await query(
       `SELECT a.id, a.stage, a.status, a.note, u.name, u.email,
+        u.headline, u.experience, u.city, u.skills, u.resume,
         floor(extract(epoch FROM now() - a.applied_at)/86400)::int AS applied_days
        FROM applications a JOIN users u ON u.id = a.user_id
        WHERE a.job_id = $1 ORDER BY a.status='active' DESC, a.stage DESC, a.applied_at DESC`,
@@ -426,6 +444,8 @@ app.get("/api/employer/jobs/:id/applicants", authRequired, requireRole("employer
       stages: STAGES,
       applicants: r.rows.map((a) => ({
         id: a.id, name: a.name, email: a.email,
+        headline: a.headline, experience: a.experience, city: a.city,
+        skills: a.skills || [], resume: a.resume || null,
         stage: a.stage, status: a.status, note: a.note, appliedDays: a.applied_days,
       })),
     });
