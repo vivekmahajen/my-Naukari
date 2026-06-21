@@ -85,7 +85,38 @@ CREATE TABLE IF NOT EXISTS job_roles (
   created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Optional link from a job posting to a directory employer (university).
+-- Sourced talent pool (e.g. Apollo CSV exports). Distinct from "users"
+-- (login accounts): these are prospected contacts, no authentication.
+CREATE TABLE IF NOT EXISTS candidates (
+  id                   SERIAL PRIMARY KEY,
+  apollo_contact_id    TEXT UNIQUE,
+  first_name           TEXT,
+  last_name            TEXT,
+  full_name            TEXT,
+  title                TEXT,
+  company              TEXT,
+  email                TEXT,
+  email_status         TEXT,
+  seniority            TEXT,
+  departments          TEXT,
+  work_phone           TEXT,
+  mobile_phone         TEXT,
+  corporate_phone      TEXT,
+  linkedin_url         TEXT,
+  company_linkedin_url TEXT,
+  website              TEXT,
+  twitter_url          TEXT,
+  facebook_url         TEXT,
+  city                 TEXT,
+  state                TEXT,
+  country              TEXT,
+  industry             TEXT,
+  keywords             TEXT,
+  num_employees        INTEGER,
+  source               TEXT DEFAULT 'Apollo',
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Added via ALTER so it also lands on databases created before this column.
 ALTER TABLE jobs ADD COLUMN IF NOT EXISTS university_id INTEGER REFERENCES employers(id) ON DELETE SET NULL;
 
@@ -106,6 +137,7 @@ CREATE INDEX IF NOT EXISTS idx_employers_type ON employers (type);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_job_roles_unique ON job_roles (lower(title), category_group);
 CREATE INDEX IF NOT EXISTS idx_job_roles_group ON job_roles (category_group);
 CREATE INDEX IF NOT EXISTS idx_job_roles_status ON job_roles (description_status);
+CREATE INDEX IF NOT EXISTS idx_candidates_title ON candidates (title);
 `;
 
 export async function migrate() {
