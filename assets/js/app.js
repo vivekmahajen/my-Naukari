@@ -457,6 +457,65 @@ function initHomeSearch() {
   });
 }
 
+/* ---------- Post a job: role autocomplete + university picker ---------- */
+async function populateRoleDatalist() {
+  const dl = document.getElementById("role-list");
+  if (!dl) return;
+  try {
+    const { roles } = await api("/job-roles?limit=300");
+    dl.innerHTML = roles.map(r => `<option value="${r.title}">${r.category}</option>`).join("");
+  } catch { /* optional — free-text title still works */ }
+}
+
+function initUniversityPicker(onChange) {
+  const input = document.getElementById("uni-picker");
+  const hidden = document.getElementById("universityId");
+  const box = document.getElementById("uni-suggest");
+  const hint = document.getElementById("uni-picked-hint");
+  if (!input || !box || !hidden) return;
+  const form = document.getElementById("post-form");
+  let timer;
+
+  const renderSuggest = (items) => {
+    if (!items.length) { box.classList.add("hide"); box.innerHTML = ""; return; }
+    box.innerHTML = items.map(e =>
+      `<div class="opt" data-id="${e.id}" data-name="${encodeURIComponent(e.name)}" data-state="${encodeURIComponent(e.state || "")}">
+         ${e.name}<small>${[shortType(e.type), e.state].filter(Boolean).join(" · ")}</small></div>`).join("");
+    box.classList.remove("hide");
+  };
+
+  input.addEventListener("input", () => {
+    hidden.value = ""; hint.textContent = "";  // editing unlinks until re-picked
+    const q = input.value.trim();
+    clearTimeout(timer);
+    if (q.length < 2) { box.classList.add("hide"); return; }
+    timer = setTimeout(async () => {
+      try { renderSuggest((await fetchEmployers({ q, limit: 8 })).employers); }
+      catch { box.classList.add("hide"); }
+    }, 220);
+  });
+
+  box.addEventListener("click", e => {
+    const opt = e.target.closest(".opt");
+    if (!opt) return;
+    const name = decodeURIComponent(opt.dataset.name);
+    const state = decodeURIComponent(opt.dataset.state);
+    hidden.value = opt.dataset.id;
+    input.value = name;
+    box.classList.add("hide");
+    const companyEl = form.querySelector('[name="company"]');
+    const locEl = form.querySelector('[name="location"]');
+    if (companyEl) companyEl.value = name;
+    if (locEl && state) locEl.value = state;
+    hint.textContent = `✓ Linked to ${name} — this job will appear on the university's profile.`;
+    onChange && onChange();
+  });
+
+  document.addEventListener("click", e => {
+    if (!box.contains(e.target) && e.target !== input) box.classList.add("hide");
+  });
+}
+
 /* ---------- Employer: post a job ---------- */
 function initPostJob() {
   const form = document.getElementById("post-form");
@@ -489,6 +548,9 @@ function initPostJob() {
   form.addEventListener("input", refresh);
   refresh();
 
+  populateRoleDatalist();
+  initUniversityPicker(refresh);
+
   form.addEventListener("submit", async e => {
     e.preventDefault();
     const u = getUser();
@@ -500,6 +562,7 @@ function initPostJob() {
       salaryMin: Number(f.get("salaryMin")), salaryMax: Number(f.get("salaryMax")),
       skills: (f.get("skills") || "").split(",").map(s => s.trim()).filter(Boolean),
       category: f.get("category") || "Other", verified: f.get("verify") === "on",
+      universityId: f.get("universityId") || null,
     };
     try {
       await api("/jobs", { method: "POST", body });
@@ -757,8 +820,11 @@ async function renderUniversityDetail() {
 
   let cats = [];
   try { cats = (await api("/job-roles/categories")).categories; } catch { /* optional */ }
+  let jobs = [];
+  try { jobs = await api("/employers/" + id + "/jobs"); } catch { /* optional */ }
   const totalRoles = cats.reduce((a, c) => a + c.roles, 0);
   const mapsQ = encodeURIComponent([e.name, e.address, e.state].filter(Boolean).join(", "));
+  const canPost = getUser()?.role === "employer";
 
   root.innerHTML = `
   <div class="detail-grid">
@@ -784,6 +850,13 @@ async function renderUniversityDetail() {
         <div class="skills">
           ${cats.map(c => `<span class="skill-tag">${c.category} · ${c.roles}</span>`).join("")}
         </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px">
+        <h3 style="margin-top:0">Open positions${jobs.length ? ` (${jobs.length})` : ""}</h3>
+        ${jobs.length
+          ? `<div class="job-list">${jobs.map(jobCard).join("")}</div>`
+          : `<p class="muted">No open positions posted yet.${canPost ? ` <a href="post-job.html">Post a role at this university →</a>` : ""}</p>`}
       </div>
     </div>
     <aside class="transparency">
