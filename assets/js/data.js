@@ -225,9 +225,8 @@ const JOBS = [
 ];
 
 /* Candidate application tracker — fixes Naukri's "black hole after apply".
-   stage index maps to STAGES below. status: active | rejected | offer */
-const STAGES = ["Applied", "Viewed", "Shortlisted", "Interview", "Decision"];
-
+   stage index maps to the STAGES list defined in app.js.
+   status: active | rejected | offer */
 const APPLICATIONS = [
   { jobId: "j1", appliedDays: 3, stage: 3, status: "active",   note: "Interview scheduled for Thu, 11:00 AM" },
   { jobId: "j8", appliedDays: 5, stage: 2, status: "active",   note: "Shortlisted by recruiter — assessment sent" },
