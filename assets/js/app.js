@@ -1005,6 +1005,109 @@ async function renderUniversityDetail() {
   </div>`;
 }
 
+/* ---------- Candidate search (employer talent pool) ---------- */
+const candState = { q: "", title: "", loc: "", offset: 0, limit: 24, total: 0 };
+let candTimer;
+
+function candCard(c) {
+  const phone = c.mobile_phone || c.work_phone || c.corporate_phone;
+  const kw = (c.keywords || "").split(",").map(s => s.trim()).filter(Boolean).slice(0, 8);
+  const loc = [c.city, c.state, c.country].filter(Boolean).join(", ");
+  const li = c.linkedin_url ? (c.linkedin_url.startsWith("http") ? c.linkedin_url : "https://" + c.linkedin_url) : null;
+  return `
+  <div class="job-card" style="cursor:default">
+    <div class="top">
+      <div class="logo-box" style="background:var(--navy)">${(c.full_name?.[0] || "?").toUpperCase()}</div>
+      <div style="flex:1">
+        <h3>${c.full_name || "—"}</h3>
+        <div class="company">${[c.title, c.company].filter(Boolean).join(" · ")}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          ${c.seniority ? `<span class="badge badge-soft">${c.seniority}</span>` : ""}
+          ${loc ? `<span class="badge badge-soft">📍 ${loc}</span>` : ""}
+          ${c.industry ? `<span class="badge badge-soft">${c.industry}</span>` : ""}
+        </div>
+      </div>
+      ${li ? `<a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="${li}">in ↗</a>` : ""}
+    </div>
+    ${kw.length ? `<div class="skills" style="margin-top:10px">${kw.map(k => `<span class="skill-tag">${k}</span>`).join("")}</div>` : ""}
+    <div class="meta" style="margin-top:10px">
+      ${c.email ? `<span class="salary">✉ ${c.email}${c.email_status ? ` <span class="muted">(${c.email_status})</span>` : ""}</span>` : ""}
+      ${phone ? `<span>📞 ${phone}</span>` : ""}
+    </div>
+  </div>`;
+}
+
+async function renderCandidates(append = false) {
+  const list = document.getElementById("cand-list");
+  if (!list) return;
+  if (!append) { candState.offset = 0; list.innerHTML = `<p class="muted">Searching…</p>`; }
+  let data;
+  try {
+    const qs = new URLSearchParams(Object.entries({
+      q: candState.q, title: candState.title, location: candState.loc,
+      limit: candState.limit, offset: candState.offset,
+    }).filter(([, v]) => v !== "" && v != null));
+    data = await api("/candidates" + (qs.toString() ? "?" + qs : ""));
+  } catch (err) {
+    const countEl = document.getElementById("cand-count");
+    if (countEl) countEl.textContent = "";
+    if (err.status === 401 || err.status === 403) {
+      list.innerHTML = `<div class="panel center"><h3>Employer sign-in required</h3>
+        <p class="muted" style="margin:8px 0 14px">Candidate search is for employer accounts.</p>
+        <button class="btn btn-primary" onclick="openAuthModal('employer', () => location.reload())">Sign in as employer</button></div>`;
+      return;
+    }
+    list.innerHTML = `<div class="panel center"><h3>${isOffline(err) ? "API server is not running" : "Something went wrong"}</h3>
+      <p class="muted">${isOffline(err) ? "Start it with: cd server && npm start" : err.message}</p></div>`;
+    return;
+  }
+  candState.total = data.total;
+  const cards = data.candidates.map(candCard).join("");
+  if (append) list.insertAdjacentHTML("beforeend", cards);
+  else list.innerHTML = data.candidates.length ? cards
+    : `<div class="panel center"><h3>No candidates match</h3><p class="muted">Try a different search, or import an Apollo CSV.</p></div>`;
+  const countEl = document.getElementById("cand-count");
+  if (countEl) countEl.textContent = `${data.total.toLocaleString()} candidate${data.total === 1 ? "" : "s"}`;
+  const shown = candState.offset + data.candidates.length;
+  const more = document.getElementById("cand-more");
+  if (more) { more.classList.toggle("hide", shown >= data.total); more.textContent = `Load more (${shown} of ${data.total})`; }
+}
+const debouncedCand = () => { clearTimeout(candTimer); candTimer = setTimeout(() => renderCandidates(false), 220); };
+
+function initCandidates() {
+  const list = document.getElementById("cand-list");
+  if (!list) return;
+  const qi = document.getElementById("cand-q"), ti = document.getElementById("cand-title"), li = document.getElementById("cand-loc");
+  qi && qi.addEventListener("input", e => { candState.q = e.target.value.trim(); debouncedCand(); });
+  ti && ti.addEventListener("input", e => { candState.title = e.target.value.trim(); debouncedCand(); });
+  li && li.addEventListener("input", e => { candState.loc = e.target.value.trim(); debouncedCand(); });
+  const more = document.getElementById("cand-more");
+  more && more.addEventListener("click", () => { candState.offset += candState.limit; renderCandidates(true); });
+
+  const btn = document.getElementById("cand-import-btn"), file = document.getElementById("cand-import-file");
+  if (btn && file) {
+    btn.addEventListener("click", () => {
+      if (!getUser() || getUser().role !== "employer") { openAuthModal("employer", () => location.reload()); return; }
+      file.click();
+    });
+    file.addEventListener("change", async e => {
+      const f = e.target.files[0];
+      if (!f) return;
+      btn.disabled = true; const orig = btn.textContent; btn.textContent = "Importing…";
+      try {
+        const text = await f.text();
+        const res = await api("/candidates/import", { method: "POST", body: { csv: text } });
+        alert(`Imported ✓ — processed ${res.processed} row(s). Total candidates: ${res.total}.`);
+        renderCandidates(false);
+      } catch (err) {
+        alert(isOffline(err) ? "API not reachable." :
+          (err.status === 401 || err.status === 403) ? "Employer sign-in required to import." : err.message);
+      } finally { btn.disabled = false; btn.textContent = orig; file.value = ""; }
+    });
+  }
+  renderCandidates(false);
+}
+
 /* ---------- Boot ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   updateAuthUI();
@@ -1017,4 +1120,5 @@ document.addEventListener("DOMContentLoaded", () => {
   renderEmployer();
   initUniversities();
   renderUniversityDetail();
+  initCandidates();
 });
