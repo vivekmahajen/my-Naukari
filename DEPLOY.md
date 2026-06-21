@@ -72,6 +72,12 @@ You should see:
 ✓ Bootstrap complete.
 ```
 
+> **Alternative (no local tooling): the browser seed endpoint.** It is **disabled
+> by default**. To use it, set a `SEED_KEY` env var in Vercel (any long random
+> string), redeploy, then visit
+> `https://<app>.vercel.app/api/admin/seed?key=<SEED_KEY>`. Remove `SEED_KEY`
+> afterwards to close the endpoint again. It never falls back to `JWT_SECRET`.
+
 ## 5. Deploy
 
 Click **Deploy** (or push to `main`). When it finishes, verify:
