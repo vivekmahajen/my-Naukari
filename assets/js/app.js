@@ -631,19 +631,21 @@ async function renderEmployer() {
           <div class="company">${j.location} · ${j.remote} · ${fmtSalary(j.salaryMin, j.salaryMax)} · ${verifiedBadge(j.verified)}</div>
         </div>
         <div class="match"><div class="ring" style="--p:100"><i>${j.applicants}</i></div><small>applicants</small></div>
-        <button class="btn btn-ghost btn-sm" onclick="atsToggle('${j.id}', this)">View applicants ▾</button>
+        <button class="btn btn-ghost btn-sm" onclick="atsToggle('${j.id}', this)">Hide applicants ▴</button>
       </div>
-      <div id="ats-${j.id}" class="hide" style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px"></div>
+      <div id="ats-${j.id}" style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+        <p class="muted">Loading applicants…</p>
+      </div>
     </div>`).join("");
 
   root.innerHTML = stats + `<h2 style="margin:24px 0 14px;font-size:20px">Your postings</h2>` + cards;
+  // Show each posting's applicants (with résumés) inline, automatically.
+  jobs.forEach(j => atsLoad(j.id));
 }
 
-async function atsToggle(jobId, btn) {
+async function atsLoad(jobId) {
   const box = document.getElementById("ats-" + jobId);
-  if (!box.classList.contains("hide")) { box.classList.add("hide"); btn.textContent = "View applicants ▾"; return; }
-  box.classList.remove("hide");
-  btn.textContent = "Hide applicants ▴";
+  if (!box) return;
   box.innerHTML = `<p class="muted">Loading applicants…</p>`;
   try {
     const data = await api(`/employer/jobs/${jobId}/applicants`);
@@ -651,6 +653,14 @@ async function atsToggle(jobId, btn) {
   } catch (err) {
     box.innerHTML = `<p class="muted">${err.message}</p>`;
   }
+}
+
+async function atsToggle(jobId, btn) {
+  const box = document.getElementById("ats-" + jobId);
+  if (!box.classList.contains("hide")) { box.classList.add("hide"); btn.textContent = "View applicants ▾"; return; }
+  box.classList.remove("hide");
+  btn.textContent = "Hide applicants ▴";
+  await atsLoad(jobId);
 }
 
 const atsApplicants = {};  // cache for the résumé modal (keyed by application id)
