@@ -653,10 +653,13 @@ async function atsToggle(jobId, btn) {
   }
 }
 
+const atsApplicants = {};  // cache for the résumé modal (keyed by application id)
+
 function atsRenderApplicants(jobId, data) {
   const box = document.getElementById("ats-" + jobId);
   if (!data.applicants.length) { box.innerHTML = `<p class="muted">No applicants yet.</p>`; return; }
 
+  data.applicants.forEach(a => { atsApplicants[a.id] = a; });
   box.innerHTML = data.applicants.map(a => {
     const statusBadge = a.status === "offer" ? `<span class="badge badge-verified">Offer</span>`
       : a.status === "rejected" ? `<span class="badge badge-stale">Rejected</span>`
@@ -669,8 +672,12 @@ function atsRenderApplicants(jobId, data) {
         <div class="logo-box" style="background:var(--navy)">${(a.name[0] || "?").toUpperCase()}</div>
         <div style="flex:1">
           <h3 style="font-size:15px">${a.name} ${statusBadge}</h3>
-          <div class="company">${a.email} · Applied ${a.appliedDays === 0 ? "today" : a.appliedDays + "d ago"} · Stage: ${data.stages[a.stage]}</div>
+          ${a.headline ? `<div class="company">${a.headline}</div>` : ""}
+          <div class="company" style="margin-top:2px">${[a.experience, a.city].filter(Boolean).join(" · ")}${a.experience || a.city ? " · " : ""}${a.email}</div>
+          <div class="company" style="margin-top:2px">Applied ${a.appliedDays === 0 ? "today" : a.appliedDays + "d ago"} · Stage: ${data.stages[a.stage]}</div>
+          ${a.skills && a.skills.length ? `<div class="skills" style="margin-top:8px">${a.skills.slice(0, 8).map(s => `<span class="skill-tag">${s}</span>`).join("")}</div>` : ""}
         </div>
+        ${a.resume ? `<button class="btn btn-ghost btn-sm" onclick="viewResume(${a.id})">📄 Résumé</button>` : ""}
       </div>
       <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:12px">
         <div class="form-row" style="margin:0">
@@ -698,6 +705,47 @@ async function atsSave(appId, jobId) {
   } catch (err) {
     alert(err.message);
   }
+}
+
+/* ---------- Résumé modal (employer ATS) ---------- */
+function resumeMarkup(a) {
+  const r = a.resume || {};
+  const exp = (r.experience || []).map(x => `
+    <div style="margin-bottom:12px">
+      <b>${x.role}</b> — ${x.org} <span class="muted">(${x.period})</span>
+      <ul>${(x.points || []).map(p => `<li>${p}</li>`).join("")}</ul>
+    </div>`).join("");
+  return `
+    <h2 style="margin:0">${a.name}</h2>
+    <p style="margin:2px 0;font-weight:600">${a.headline || ""}</p>
+    <p class="muted" style="font-size:13px">${[a.city, a.email, a.experience].filter(Boolean).join(" · ")}</p>
+    ${r.summary ? `<h3>Summary</h3><p class="muted">${r.summary}</p>` : ""}
+    ${exp ? `<h3>Experience</h3>${exp}` : ""}
+    ${(r.education || []).length ? `<h3>Education</h3><ul>${r.education.map(e => `<li>${e}</li>`).join("")}</ul>` : ""}
+    ${(r.achievements || []).length ? `<h3>Key achievements</h3><ul>${r.achievements.map(e => `<li>${e}</li>`).join("")}</ul>` : ""}
+    ${(a.skills || []).length ? `<h3>Skills</h3><div class="skills">${a.skills.map(s => `<span class="skill-tag">${s}</span>`).join("")}</div>` : ""}
+    ${(r.affiliations || []).length ? `<h3>Affiliations</h3><ul>${r.affiliations.map(e => `<li>${e}</li>`).join("")}</ul>` : ""}`;
+}
+
+function viewResume(id) {
+  const a = atsApplicants[id];
+  if (!a) return;
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:680px">
+      <div class="modal-head">
+        <h2 style="margin:0">Résumé</h2>
+        <button class="x" onclick="this.closest('.modal-overlay').remove()">×</button>
+      </div>
+      <div class="modal-body">${resumeMarkup(a)}
+        <div style="margin-top:18px;display:flex;gap:10px">
+          <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print / Save PDF</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
 }
 
 /* ---------- Universities (potential employers) directory ---------- */

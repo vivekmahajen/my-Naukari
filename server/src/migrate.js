@@ -89,6 +89,14 @@ CREATE TABLE IF NOT EXISTS job_roles (
 -- Added via ALTER so it also lands on databases created before this column.
 ALTER TABLE jobs ADD COLUMN IF NOT EXISTS university_id INTEGER REFERENCES employers(id) ON DELETE SET NULL;
 
+-- Candidate profile fields (skills/experience/résumé) for richer applicants.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS gender     TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS headline   TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS experience TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS city       TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS skills     TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS resume     JSONB;
+
 CREATE INDEX IF NOT EXISTS idx_jobs_category ON jobs(category);
 CREATE INDEX IF NOT EXISTS idx_jobs_university ON jobs(university_id);
 CREATE INDEX IF NOT EXISTS idx_apps_user ON applications(user_id);
