@@ -47,27 +47,39 @@ const COLS = [
   "facebook_url", "city", "state", "country", "industry", "keywords", "num_employees",
 ];
 
-export async function importCandidates(csvPath) {
-  const rows = parseCSV(fs.readFileSync(csvPath, "utf8")).filter((r) => r.some((c) => c !== ""));
-  if (!rows.length) throw new Error("Empty CSV");
+// Parse Apollo CSV text → array of candidate objects (keyed by COLS).
+export function parseCandidatesCsv(text) {
+  const rows = parseCSV(text).filter((r) => r.some((c) => c !== ""));
+  if (!rows.length) return [];
   const header = rows[0].map((h) => h.trim());
   const at = (r, name) => { const i = header.indexOf(name); return i >= 0 ? clean(r[i]) : null; };
-
-  let n = 0;
+  const out = [];
   for (const r of rows.slice(1)) {
-    const first = at(r, "First Name"), last = at(r, "Last Name");
-    const li = at(r, "Person Linkedin Url");
-    if (!first && !last && !li) continue; // skip blank lines
-    const vals = [
-      at(r, "Apollo Contact Id"), first, last, [first, last].filter(Boolean).join(" ") || null,
-      at(r, "Title"), at(r, "Company Name"), at(r, "Email"), at(r, "Email Status"),
-      at(r, "Seniority"), at(r, "Departments"), at(r, "Work Direct Phone"), at(r, "Mobile Phone"),
-      at(r, "Corporate Phone"), li, at(r, "Company Linkedin Url"), at(r, "Website"),
-      at(r, "Twitter Url"), at(r, "Facebook Url"), at(r, "City"), at(r, "State"), at(r, "Country"),
-      at(r, "Industry"), at(r, "Keywords"), toInt(at(r, "# Employees")),
-    ];
+    const first = at(r, "First Name"), last = at(r, "Last Name"), li = at(r, "Person Linkedin Url");
+    if (!first && !last && !li) continue;
+    out.push({
+      apollo_contact_id: at(r, "Apollo Contact Id"), first_name: first, last_name: last,
+      full_name: [first, last].filter(Boolean).join(" ") || null,
+      title: at(r, "Title"), company: at(r, "Company Name"), email: at(r, "Email"),
+      email_status: at(r, "Email Status"), seniority: at(r, "Seniority"), departments: at(r, "Departments"),
+      work_phone: at(r, "Work Direct Phone"), mobile_phone: at(r, "Mobile Phone"),
+      corporate_phone: at(r, "Corporate Phone"), linkedin_url: li,
+      company_linkedin_url: at(r, "Company Linkedin Url"), website: at(r, "Website"),
+      twitter_url: at(r, "Twitter Url"), facebook_url: at(r, "Facebook Url"),
+      city: at(r, "City"), state: at(r, "State"), country: at(r, "Country"),
+      industry: at(r, "Industry"), keywords: at(r, "Keywords"), num_employees: toInt(at(r, "# Employees")),
+    });
+  }
+  return out;
+}
+
+// Idempotent upsert (by apollo_contact_id) of parsed candidate objects.
+export async function upsertCandidates(list) {
+  const updates = COLS.filter((c) => c !== "apollo_contact_id").map((c) => `${c}=EXCLUDED.${c}`).join(", ");
+  let n = 0;
+  for (const c of list) {
+    const vals = COLS.map((col) => c[col] ?? null);
     const placeholders = vals.map((_, i) => `$${i + 1}`).join(",");
-    const updates = COLS.filter((c) => c !== "apollo_contact_id").map((c) => `${c}=EXCLUDED.${c}`).join(", ");
     await pool.query(
       `INSERT INTO candidates (${COLS.join(",")}) VALUES (${placeholders})
        ON CONFLICT (apollo_contact_id) DO UPDATE SET ${updates}`,
@@ -75,6 +87,12 @@ export async function importCandidates(csvPath) {
     );
     n++;
   }
+  return n;
+}
+
+export async function importCandidates(csvPath) {
+  const list = parseCandidatesCsv(fs.readFileSync(csvPath, "utf8"));
+  const n = await upsertCandidates(list);
   const total = (await pool.query("SELECT count(*) FROM candidates")).rows[0].count;
   console.log(`✓ Candidates import: ${n} rows processed. Total in table: ${total}.`);
   return { processed: n, total: Number(total) };

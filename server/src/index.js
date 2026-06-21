@@ -7,11 +7,12 @@ import { signToken, authOptional, authRequired, requireRole } from "./auth.js";
 import { bootstrap } from "./bootstrap.js";
 import { migrate } from "./migrate.js";
 import { seedCandidates, CANDIDATE_PASSWORD } from "./seed_candidates.js";
+import { parseCandidatesCsv, upsertCandidates } from "./import_candidates.js";
 
 dotenv.config();
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: "10mb" })); // allow CSV-text uploads for candidate import
 
 const origins = (process.env.CORS_ORIGIN || "").split(",").map((s) => s.trim()).filter(Boolean);
 app.use(cors({ origin: origins.length ? origins : true }));
@@ -375,6 +376,51 @@ app.patch("/api/job-roles/:id", authRequired, requireRole("employer"), async (re
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Failed to update role" });
+  }
+});
+
+/* ---------------- Candidates (sourced talent pool) — employer only ---------------- */
+app.get("/api/candidates", authRequired, requireRole("employer"), async (req, res) => {
+  const { q, title, location, seniority } = req.query;
+  const limit = Math.min(Number(req.query.limit) || 25, 100);
+  const offset = Number(req.query.offset) || 0;
+  const clauses = [], vals = [];
+  if (q) { vals.push(`%${q}%`); const p = `$${vals.length}`;
+    clauses.push(`(full_name ILIKE ${p} OR title ILIKE ${p} OR company ILIKE ${p} OR keywords ILIKE ${p} OR industry ILIKE ${p})`); }
+  if (title) { vals.push(`%${title}%`); clauses.push(`title ILIKE $${vals.length}`); }
+  if (location) { vals.push(`%${location}%`); const p = `$${vals.length}`;
+    clauses.push(`(city ILIKE ${p} OR state ILIKE ${p} OR country ILIKE ${p})`); }
+  if (seniority) { vals.push(seniority); clauses.push(`seniority = $${vals.length}`); }
+  const where = clauses.length ? "WHERE " + clauses.join(" AND ") : "";
+  try {
+    const total = await query(`SELECT count(*)::int AS n FROM candidates ${where}`, vals);
+    const rows = await query(
+      `SELECT id, full_name, title, company, email, email_status, mobile_phone, work_phone,
+              corporate_phone, linkedin_url, company_linkedin_url, website, city, state, country,
+              seniority, industry, keywords, num_employees, source
+       FROM candidates ${where} ORDER BY full_name
+       LIMIT $${vals.length + 1} OFFSET $${vals.length + 2}`,
+      [...vals, limit, offset]
+    );
+    res.json({ total: total.rows[0].n, limit, offset, candidates: rows.rows });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to fetch candidates" });
+  }
+});
+
+// Import an Apollo CSV (text in the body) into the talent pool. Idempotent.
+app.post("/api/candidates/import", authRequired, requireRole("employer"), async (req, res) => {
+  const csv = req.body && req.body.csv;
+  if (!csv || typeof csv !== "string") return res.status(400).json({ error: "Provide CSV text in { csv }" });
+  try {
+    const list = parseCandidatesCsv(csv);
+    const processed = await upsertCandidates(list);
+    const total = (await query("SELECT count(*)::int AS n FROM candidates")).rows[0].n;
+    res.json({ ok: true, processed, total });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Import failed: " + e.message });
   }
 });
 
