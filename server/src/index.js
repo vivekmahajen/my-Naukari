@@ -45,6 +45,7 @@ function mapJob(r) {
     requirements: r.requirements,
     universityId: r.university_id ? String(r.university_id) : null,
     universityName: r.university_name || null,
+    employerId: r.employer_id ? String(r.employer_id) : null,
   };
 }
 
