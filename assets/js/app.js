@@ -672,10 +672,8 @@ const atsApplicants = {};  // cache for the résumé modal (keyed by application
 
 function atsRenderApplicants(jobId, data) {
   const box = document.getElementById("ats-" + jobId);
-  if (!data.applicants.length) { box.innerHTML = `<p class="muted">No applicants yet.</p>`; return; }
-
   data.applicants.forEach(a => { atsApplicants[a.id] = a; });
-  box.innerHTML = data.applicants.map(a => {
+  const applicantsHtml = data.applicants.map(a => {
     const statusBadge = a.status === "offer" ? `<span class="badge badge-verified">Offer</span>`
       : a.status === "rejected" ? `<span class="badge badge-stale">Rejected</span>`
       : `<span class="badge badge-soft">In pipeline</span>`;
@@ -708,6 +706,30 @@ function atsRenderApplicants(jobId, data) {
       <p class="muted" style="font-size:13px;margin-top:8px">📌 ${a.note || "—"}</p>
     </div>`;
   }).join("");
+
+  const sourced = data.sourced || [];
+  const sourcedHtml = sourced.length ? `
+    <div style="margin-bottom:14px">
+      <h4 style="margin:0 0 8px">🗂 Sourced candidates (${sourced.length})</h4>
+      ${sourced.map(s => `
+        <div class="app-row" style="margin-bottom:10px">
+          <div class="top">
+            <div class="logo-box" style="background:#5a3e9a">${(s.name?.[0] || "?").toUpperCase()}</div>
+            <div style="flex:1">
+              <h3 style="font-size:15px">${s.name || "—"} <span class="badge badge-soft">Sourced</span></h3>
+              <div class="company">${[s.title, s.company].filter(Boolean).join(" · ")}${s.location ? " · " + s.location : ""}</div>
+              <div class="company" style="margin-top:2px">${[s.email && ("✉ " + s.email), s.phone && ("📞 " + s.phone)].filter(Boolean).join(" · ") || ""}</div>
+            </div>
+            ${s.linkedin ? `<a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="${s.linkedin.startsWith("http") ? s.linkedin : "https://" + s.linkedin}">in ↗</a>` : ""}
+          </div>
+        </div>`).join("")}
+    </div>` : "";
+
+  const applicantsHeader = data.applicants.length
+    ? `<h4 style="margin:0 0 8px">📥 Applicants (${data.applicants.length})</h4>`
+    : `<p class="muted">No direct applicants yet.</p>`;
+
+  box.innerHTML = sourcedHtml + applicantsHeader + applicantsHtml;
 }
 
 async function atsSave(appId, jobId) {
@@ -1006,8 +1028,9 @@ async function renderUniversityDetail() {
 }
 
 /* ---------- Candidate search (employer talent pool) ---------- */
-const candState = { q: "", title: "", loc: "", offset: 0, limit: 24, total: 0 };
+const candState = { q: "", title: "", seniority: "", loc: "", offset: 0, limit: 24, total: 0 };
 let candTimer;
+let candEmployerJobs = []; // employer's jobs, for the shortlist dropdown
 
 function candCard(c) {
   const phone = c.mobile_phone || c.work_phone || c.corporate_phone;
@@ -1034,7 +1057,71 @@ function candCard(c) {
       ${c.email ? `<span class="salary">✉ ${c.email}${c.email_status ? ` <span class="muted">(${c.email_status})</span>` : ""}</span>` : ""}
       ${phone ? `<span>📞 ${phone}</span>` : ""}
     </div>
+    <div class="card-foot">
+      <span class="posted">🗂 Sourced lead · ${c.source || "Apollo"}</span>
+      <button class="btn btn-ghost btn-sm" onclick="viewCandidate(${c.id})">View &amp; shortlist →</button>
+    </div>
   </div>`;
+}
+
+async function viewCandidate(id) {
+  let c;
+  try { c = await api("/candidates/" + id); }
+  catch (err) { alert(err.message || "Could not load candidate"); return; }
+  const kw = (c.keywords || "").split(",").map(s => s.trim()).filter(Boolean);
+  const li = c.linkedin_url ? (c.linkedin_url.startsWith("http") ? c.linkedin_url : "https://" + c.linkedin_url) : null;
+  const phone = c.mobile_phone || c.work_phone || c.corporate_phone;
+  const row = (k, v) => v ? `<div class="t-row"><span class="k">${k}</span><span class="v">${v}</span></div>` : "";
+  const jobOpts = candEmployerJobs.map(j => `<option value="${j.id}">${j.title}${j.company ? " — " + j.company : ""}</option>`).join("");
+
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:680px">
+      <div class="modal-head">
+        <div class="logo-box" style="background:var(--navy)">${(c.full_name?.[0] || "?").toUpperCase()}</div>
+        <div><h2 style="margin:0">${c.full_name || "—"}</h2>
+          <p class="muted" style="font-size:13.5px">${[c.title, c.company].filter(Boolean).join(" · ")}</p></div>
+        <button class="x" onclick="this.closest('.modal-overlay').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        ${row("LinkedIn", li ? `<a href="${li}" target="_blank" rel="noopener">${li}</a>` : "")}
+        ${row("Email", c.email ? `${c.email}${c.email_status ? ` (${c.email_status})` : ""}` : "")}
+        ${row("Phone", phone || "")}
+        ${row("Seniority", c.seniority)}
+        ${row("Location", [c.city, c.state, c.country].filter(Boolean).join(", "))}
+        ${row("Industry", c.industry)}
+        ${row("Departments", c.departments)}
+        ${row("Company size", c.num_employees ? c.num_employees.toLocaleString() + " employees" : "")}
+        ${row("Company links", [c.company_linkedin_url, c.website].filter(Boolean).map(u => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`).join("<br>"))}
+        ${kw.length ? `<h3>Keywords</h3><div class="skills">${kw.slice(0, 40).map(k => `<span class="skill-tag">${k}</span>`).join("")}</div>` : ""}
+
+        <h3>Shortlist to a job</h3>
+        ${candEmployerJobs.length
+          ? `<div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+               <div class="form-row" style="margin:0;flex:1;min-width:220px">
+                 <label style="font-size:12px">Your job postings</label>
+                 <select id="shortlist-job-${c.id}">${jobOpts}</select>
+               </div>
+               <button class="btn btn-primary btn-sm" onclick="shortlistCandidate(${c.id})">Add to pipeline</button>
+             </div>
+             <p class="hint">Shortlisted candidates appear under that job in your Employer ATS.</p>`
+          : `<p class="muted">Post a job first to shortlist candidates into its pipeline.</p>`}
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function shortlistCandidate(id) {
+  const sel = document.getElementById("shortlist-job-" + id);
+  if (!sel || !sel.value) return;
+  try {
+    const res = await api(`/candidates/${id}/shortlist`, { method: "POST", body: { jobId: sel.value } });
+    alert(res.alreadyShortlisted ? "Already shortlisted to that job." : "✓ Added to the job's pipeline. See it in your Employer ATS.");
+  } catch (err) {
+    alert(err.message || "Could not shortlist");
+  }
 }
 
 async function renderCandidates(append = false) {
@@ -1044,7 +1131,7 @@ async function renderCandidates(append = false) {
   let data;
   try {
     const qs = new URLSearchParams(Object.entries({
-      q: candState.q, title: candState.title, location: candState.loc,
+      q: candState.q, title: candState.title, seniority: candState.seniority, location: candState.loc,
       limit: candState.limit, offset: candState.offset,
     }).filter(([, v]) => v !== "" && v != null));
     data = await api("/candidates" + (qs.toString() ? "?" + qs : ""));
@@ -1074,12 +1161,25 @@ async function renderCandidates(append = false) {
 }
 const debouncedCand = () => { clearTimeout(candTimer); candTimer = setTimeout(() => renderCandidates(false), 220); };
 
-function initCandidates() {
+async function initCandidates() {
   const list = document.getElementById("cand-list");
   if (!list) return;
-  const qi = document.getElementById("cand-q"), ti = document.getElementById("cand-title"), li = document.getElementById("cand-loc");
+
+  // Populate filter dropdowns + load the employer's jobs (for shortlisting).
+  try {
+    const meta = await api("/candidates/meta");
+    const ts = document.getElementById("cand-title");
+    const ss = document.getElementById("cand-seniority");
+    if (ts) ts.insertAdjacentHTML("beforeend", meta.titles.map(t => `<option value="${t}">${t}</option>`).join(""));
+    if (ss) ss.insertAdjacentHTML("beforeend", meta.seniorities.map(s => `<option value="${s}">${s}</option>`).join(""));
+    candEmployerJobs = await api("/employer/jobs").catch(() => []);
+  } catch { /* not an employer / not signed in — handled by renderCandidates */ }
+
+  const qi = document.getElementById("cand-q"), ti = document.getElementById("cand-title"),
+        si = document.getElementById("cand-seniority"), li = document.getElementById("cand-loc");
   qi && qi.addEventListener("input", e => { candState.q = e.target.value.trim(); debouncedCand(); });
-  ti && ti.addEventListener("input", e => { candState.title = e.target.value.trim(); debouncedCand(); });
+  ti && ti.addEventListener("change", e => { candState.title = e.target.value; renderCandidates(false); });
+  si && si.addEventListener("change", e => { candState.seniority = e.target.value; renderCandidates(false); });
   li && li.addEventListener("input", e => { candState.loc = e.target.value.trim(); debouncedCand(); });
   const more = document.getElementById("cand-more");
   more && more.addEventListener("click", () => { candState.offset += candState.limit; renderCandidates(true); });
