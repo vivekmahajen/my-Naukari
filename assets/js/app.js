@@ -751,11 +751,75 @@ function viewResume(id) {
       </div>
       <div class="modal-body">${resumeMarkup(a)}
         <div style="margin-top:18px;display:flex;gap:10px">
-          <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print / Save PDF</button>
+          <button class="btn btn-primary btn-sm" onclick="downloadResumePdf(${a.id}, this)">⬇ Download PDF</button>
+          <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
         </div>
       </div>
     </div>`;
   document.body.appendChild(overlay);
+}
+
+/* Lazy-load jsPDF (only when a download is requested) and build a clean,
+   text-based résumé PDF entirely in the browser — no server dependency. */
+let _jspdfPromise;
+function ensureJsPDF() {
+  if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+  _jspdfPromise = _jspdfPromise || new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    s.onload = () => resolve(window.jspdf.jsPDF);
+    s.onerror = () => reject(new Error("network"));
+    document.head.appendChild(s);
+  });
+  return _jspdfPromise;
+}
+
+async function downloadResumePdf(id, btn) {
+  const a = atsApplicants[id];
+  if (!a) return;
+  let JsPDF;
+  try { JsPDF = await ensureJsPDF(); }
+  catch { alert("Couldn't load the PDF library (network). Use 🖨 Print → Save as PDF instead."); return; }
+  if (btn) { btn.disabled = true; btn.textContent = "Generating…"; }
+
+  const r = a.resume || {};
+  const doc = new JsPDF({ unit: "pt", format: "a4" });
+  const M = 48, PW = 595, maxY = 842 - 48;
+  let y = M;
+  const text = (str, { size = 11, bold = false, color = [26, 34, 51], gap = 5, indent = 0 } = {}) => {
+    doc.setFont("helvetica", bold ? "bold" : "normal");
+    doc.setFontSize(size);
+    doc.setTextColor(color[0], color[1], color[2]);
+    for (const ln of doc.splitTextToSize(String(str), PW - 2 * M - indent)) {
+      if (y > maxY) { doc.addPage(); y = M; }
+      doc.text(ln, M + indent, y);
+      y += size + gap;
+    }
+  };
+  const heading = (t) => { y += 8; text(t, { size: 12, bold: true, color: [24, 117, 229] }); y += 1; };
+  const bullets = (arr) => (arr || []).forEach((it) => text("•  " + it, { indent: 6 }));
+
+  text(a.name, { size: 20, bold: true });
+  if (a.headline) text(a.headline, { size: 12, color: [24, 117, 229] });
+  text([a.city, a.email, a.experience ? a.experience + " experience" : ""].filter(Boolean).join("  ·  "),
+    { size: 9.5, color: [100, 112, 133] });
+
+  if (r.summary) { heading("Professional Summary"); text(r.summary); }
+  if ((r.experience || []).length) {
+    heading("Experience");
+    r.experience.forEach((x) => {
+      text(`${x.role} — ${x.org}  (${x.period})`, { bold: true, size: 11 });
+      bullets(x.points);
+      y += 2;
+    });
+  }
+  if ((r.education || []).length) { heading("Education"); bullets(r.education); }
+  if ((r.achievements || []).length) { heading("Key Achievements"); bullets(r.achievements); }
+  if ((a.skills || []).length) { heading("Core Skills"); text(a.skills.join(", ")); }
+  if ((r.affiliations || []).length) { heading("Affiliations"); bullets(r.affiliations); }
+
+  doc.save(a.name.replace(/[^a-z0-9]+/gi, "_") + "_Resume.pdf");
+  if (btn) { btn.disabled = false; btn.textContent = "⬇ Download PDF"; }
 }
 
 /* ---------- Universities (potential employers) directory ---------- */
