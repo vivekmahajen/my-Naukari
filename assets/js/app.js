@@ -260,6 +260,8 @@ async function renderDetail() {
   const j = await fetchJob(id);
   if (!j) { root.innerHTML = `<div class="panel center" style="margin-top:40px"><h2>Job not found</h2></div>`; return; }
   document.title = `${j.title} at ${j.company} · Naukri+`;
+  const me = getUser();
+  const isOwner = me && me.role === "employer" && j.employerId && String(me.id) === String(j.employerId);
 
   const stages = [
     { t: "Application reviewed", s: "Median 2 days at " + j.company },
@@ -293,8 +295,11 @@ async function renderDetail() {
     </div>
     <aside class="transparency">
       <div class="panel">
-        <button class="btn btn-primary btn-block" onclick="openApplyModal('${j.id}')">⚡ One-click apply</button>
-        <p class="muted center" style="font-size:12.5px;margin-top:8px">You'll be able to track this in your dashboard.</p>
+        ${isOwner
+          ? `<a class="btn btn-primary btn-block" href="employer.html">👥 View ${j.applicants} applicant${j.applicants === 1 ? "" : "s"} →</a>
+             <p class="muted center" style="font-size:12.5px;margin-top:8px">You posted this job. Manage applicants & résumés in your ATS.</p>`
+          : `<button class="btn btn-primary btn-block" onclick="openApplyModal('${j.id}')">⚡ One-click apply</button>
+             <p class="muted center" style="font-size:12.5px;margin-top:8px">You'll be able to track this in your dashboard.</p>`}
         <div style="margin-top:16px">
           <div class="t-row"><span class="k">Salary (always shown)</span><span class="v">${fmtSalary(j.salaryMin, j.salaryMax)}</span></div>
           <div class="t-row"><span class="k">Experience</span><span class="v">${j.experience || "—"}</span></div>
