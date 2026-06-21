@@ -66,12 +66,17 @@ app.get("/api/health", async (_req, res) => {
 });
 
 /* One-time DB provisioning, triggerable from a browser so no local tooling is
-   needed. Protected by a secret key (?key=… or x-seed-key header) matching
-   SEED_KEY (falls back to JWT_SECRET). Idempotent: safe to call more than once. */
+   needed. DISABLED unless a dedicated SEED_KEY env var is set, and the request
+   must present it (?key=… or x-seed-key header). It intentionally does NOT fall
+   back to JWT_SECRET, so leaving SEED_KEY unset fully closes this endpoint.
+   Idempotent: safe to call more than once. */
 app.all("/api/admin/seed", async (req, res) => {
+  const expected = process.env.SEED_KEY;
+  if (!expected) {
+    return res.status(403).json({ ok: false, error: "Seeding is disabled. Set a SEED_KEY env var to enable it." });
+  }
   const provided = req.query.key || req.get("x-seed-key");
-  const expected = process.env.SEED_KEY || process.env.JWT_SECRET;
-  if (!expected || provided !== expected) {
+  if (provided !== expected) {
     return res.status(401).json({ ok: false, error: "Invalid or missing seed key" });
   }
   try {

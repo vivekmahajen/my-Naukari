@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+
+jobs:
+  frontend-syntax:
+    name: Frontend & server syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check server JS + serverless entry parse
+        run: |
+          for f in server/src/*.js api/index.js; do
+            echo "checking $f"
+            node --check "$f"
+          done
+      - name: Check browser scripts parse together (catches global redeclarations)
+        run: |
+          # data.js and app.js are loaded as two <script> tags in global scope,
+          # so a duplicate top-level `const` in either breaks the page. Parsing
+          # them concatenated reproduces that and fails CI before it ships.
+          cat assets/js/data.js assets/js/app.js > /tmp/combined.js
+          node --check /tmp/combined.js
+          echo "✓ no global redeclarations between data.js and app.js"
+
+  backend-test:
+    name: Backend smoke test (Postgres)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: naukri
+          POSTGRES_PASSWORD: naukri
+          POSTGRES_DB: naukriplus
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://naukri:naukri@localhost:5432/naukriplus
+      JWT_SECRET: test-secret
+      PGSSL: disable
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Provision database (migrate + seed + imports)
+        run: npm run setup
+      - name: Start API and run smoke test
+        run: |
+          node src/index.js &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:4000/api/health >/dev/null && break || sleep 1
+          done
+          npm test
