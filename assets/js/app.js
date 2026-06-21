@@ -654,7 +654,7 @@ async function fetchEmployers(params = {}) {
 function uniCard(e) {
   const loc = [e.state].filter(Boolean).join("");
   return `
-  <div class="job-card" style="cursor:default">
+  <a class="job-card" href="university.html?id=${e.id}">
     <div class="top">
       <div class="logo-box" style="background:${uniColor(e.name)}">${uniInitials(e.name)}</div>
       <div style="flex:1">
@@ -667,7 +667,11 @@ function uniCard(e) {
       </div>
     </div>
     ${e.address ? `<p class="muted" style="font-size:13.5px;margin-top:10px">📍 ${e.address}</p>` : ""}
-  </div>`;
+    <div class="card-foot">
+      <span class="posted">🏛 Potential employer · UGC-recognised</span>
+      <span class="btn btn-ghost btn-sm">View profile →</span>
+    </div>
+  </a>`;
 }
 
 async function renderUniversities(append = false) {
@@ -714,18 +718,91 @@ async function initUniversities() {
     if (typeSel) typeSel.insertAdjacentHTML("beforeend", meta.types.map(t => `<option value="${t}">${shortType(t)}</option>`).join(""));
   } catch { /* dropdowns stay as "All"; free-text search still works */ }
 
+  // Seed state from the URL so deep links (e.g. ?state=Kerala) work.
   const p = new URLSearchParams(location.search);
   uniState.q = p.get("q") || "";
+  uniState.state = p.get("state") || "";
+  uniState.type = p.get("type") || "";
+
   const qi = document.getElementById("uni-q");
-  if (qi) { qi.value = uniState.q; qi.addEventListener("input", e => { uniState.q = e.target.value.trim(); debouncedUni(); }); }
   const ss = document.getElementById("uni-state");
-  ss && ss.addEventListener("change", e => { uniState.state = e.target.value; renderUniversities(false); });
   const ts = document.getElementById("uni-type");
-  ts && ts.addEventListener("change", e => { uniState.type = e.target.value; renderUniversities(false); });
+  if (qi) { qi.value = uniState.q; qi.addEventListener("input", e => { uniState.q = e.target.value.trim(); debouncedUni(); }); }
+  if (ss) { if (uniState.state) ss.value = uniState.state; ss.addEventListener("change", e => { uniState.state = e.target.value; renderUniversities(false); }); }
+  if (ts) { if (uniState.type) ts.value = uniState.type; ts.addEventListener("change", e => { uniState.type = e.target.value; renderUniversities(false); }); }
   const more = document.getElementById("uni-more");
   more && more.addEventListener("click", () => { uniState.offset += uniState.limit; renderUniversities(true); });
 
   renderUniversities(false);
+}
+
+/* ---------- University detail ---------- */
+async function renderUniversityDetail() {
+  const root = document.getElementById("uni-detail-root");
+  if (!root) return;
+  const id = new URLSearchParams(location.search).get("id");
+  if (!id) { location.href = "universities.html"; return; }
+
+  let e;
+  try {
+    e = await api("/employers/" + id);
+  } catch (err) {
+    root.innerHTML = `<div class="panel center" style="margin-top:40px">
+      <h2>${isOffline(err) ? "API server is not running" : "University not found"}</h2>
+      <p class="muted">${isOffline(err) ? "Start it with: cd server && npm start" : err.message}</p>
+      <a class="btn btn-primary" href="universities.html" style="margin-top:12px">← Back to universities</a></div>`;
+    return;
+  }
+  document.title = `${e.name} · Naukri+`;
+
+  let cats = [];
+  try { cats = (await api("/job-roles/categories")).categories; } catch { /* optional */ }
+  const totalRoles = cats.reduce((a, c) => a + c.roles, 0);
+  const mapsQ = encodeURIComponent([e.name, e.address, e.state].filter(Boolean).join(", "));
+
+  root.innerHTML = `
+  <div class="detail-grid">
+    <div>
+      <div class="panel">
+        <div style="display:flex;gap:16px;align-items:flex-start">
+          <div class="logo-box" style="background:${uniColor(e.name)};width:60px;height:60px;font-size:22px">${uniInitials(e.name)}</div>
+          <div style="flex:1">
+            <h2 style="margin:0">${e.name}</h2>
+            <p class="muted" style="margin:2px 0 10px">${[e.state, e.zip].filter(Boolean).join(" · ") || "India"}</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <span class="badge badge-soft">${shortType(e.type) || "University"}</span>
+              ${e.ugc_status ? `<span class="badge badge-verified" title="UGC recognition status">UGC ${e.ugc_status}</span>` : ""}
+              <span class="badge badge-match">Potential employer</span>
+            </div>
+          </div>
+        </div>
+        ${e.address ? `<h3>Address</h3><p class="muted">📍 ${e.address}</p>
+        <a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${mapsQ}">Open in Maps ↗</a>` : ""}
+
+        <h3 style="margin-top:22px">Leadership roles such institutions hire</h3>
+        <p class="muted" style="font-size:13.5px">Drawn from our catalog of ${totalRoles || "150+"} university leadership positions across ${cats.length || 11} areas. Detailed descriptions are being added.</p>
+        <div class="skills">
+          ${cats.map(c => `<span class="skill-tag">${c.category} · ${c.roles}</span>`).join("")}
+        </div>
+      </div>
+    </div>
+    <aside class="transparency">
+      <div class="panel">
+        <h3 style="margin-top:0">Institution details</h3>
+        <div class="t-row"><span class="k">Type</span><span class="v">${e.type || "—"}</span></div>
+        <div class="t-row"><span class="k">State</span><span class="v">${e.state || "—"}</span></div>
+        <div class="t-row"><span class="k">PIN code</span><span class="v">${e.zip || "—"}</span></div>
+        <div class="t-row"><span class="k">UGC status</span><span class="v">${e.ugc_status || "—"}</span></div>
+        <div class="t-row"><span class="k">Category</span><span class="v">${e.category || "University"}</span></div>
+        <div class="t-row"><span class="k">Source</span><span class="v">${e.source || "—"}</span></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0">Explore more</h3>
+        ${e.state ? `<a class="btn btn-ghost btn-block" href="universities.html?state=${encodeURIComponent(e.state)}">More in ${e.state}</a>` : ""}
+        ${e.type ? `<a class="btn btn-ghost btn-block" style="margin-top:8px" href="universities.html?type=${encodeURIComponent(e.type)}">All ${shortType(e.type)} universities</a>` : ""}
+      </div>
+    </aside>
+  </div>`;
 }
 
 /* ---------- Boot ---------- */
@@ -739,4 +816,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initPostJob();
   renderEmployer();
   initUniversities();
+  renderUniversityDetail();
 });
