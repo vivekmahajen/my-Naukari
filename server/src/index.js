@@ -41,12 +41,16 @@ function mapJob(r) {
     about: r.about,
     responsibilities: r.responsibilities,
     requirements: r.requirements,
+    universityId: r.university_id ? String(r.university_id) : null,
+    universityName: r.university_name || null,
   };
 }
 
 const JOB_SELECT = `
-  SELECT j.*, (SELECT count(*) FROM applications a WHERE a.job_id = j.id) AS live_applicants
-  FROM jobs j`;
+  SELECT j.*, (SELECT count(*) FROM applications a WHERE a.job_id = j.id) AS live_applicants,
+    e.name AS university_name
+  FROM jobs j
+  LEFT JOIN employers e ON e.id = j.university_id`;
 
 /* ---------------- Health ---------------- */
 app.get("/api/health", async (_req, res) => {
@@ -172,25 +176,34 @@ app.get("/api/jobs/:id", async (req, res) => {
 /* Employer posts a job */
 app.post("/api/jobs", authRequired, requireRole("employer"), async (req, res) => {
   const b = req.body || {};
-  if (!b.title || !b.location || !b.salaryMin || !b.salaryMax)
-    return res.status(400).json({ error: "title, location, salaryMin and salaryMax are required" });
+  if (!b.title || !b.salaryMin || !b.salaryMax || (!b.location && !b.universityId))
+    return res.status(400).json({ error: "title, location (or a university), salaryMin and salaryMax are required" });
   if (Number(b.salaryMax) < Number(b.salaryMin))
     return res.status(400).json({ error: "salaryMax must be >= salaryMin" });
   try {
-    const company = b.company || req.user.company || "Company";
+    // Optionally link to a directory employer (university) and default company/location from it.
+    let universityId = b.universityId ? Number(b.universityId) : null;
+    let uni = null;
+    if (universityId) {
+      const u = await query("SELECT id, name, state FROM employers WHERE id = $1", [universityId]);
+      uni = u.rows[0] || null;
+      if (!uni) universityId = null; // ignore an unknown id rather than failing
+    }
+    const company = b.company || uni?.name || req.user.company || "Company";
+    const location = b.location || uni?.state || "India";
     const logoText = (company.trim()[0] || "?").toUpperCase() +
       (company.trim().split(" ")[1]?.[0]?.toUpperCase() || "");
     const r = await query(
       `INSERT INTO jobs
         (employer_id,title,company,logo_text,verified,location,remote,type,experience,
-         salary_min,salary_max,openings,skills,category,match_score,match_reason)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,100,'Newly posted role.')
+         salary_min,salary_max,openings,skills,category,university_id,match_score,match_reason)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,100,'Newly posted role.')
        RETURNING id`,
-      [req.user.id, b.title, company, logoText, !!b.verified, b.location,
+      [req.user.id, b.title, company, logoText, !!b.verified, location,
        b.remote || "On-site", b.type || "Full-time", b.experience || null,
        Number(b.salaryMin), Number(b.salaryMax), Number(b.openings) || 1,
        Array.isArray(b.skills) ? b.skills : String(b.skills || "").split(",").map((s) => s.trim()).filter(Boolean),
-       b.category || "Other"]
+       b.category || "Other", universityId]
     );
     const created = await query(`${JOB_SELECT} WHERE j.id = $1`, [r.rows[0].id]);
     res.status(201).json(mapJob(created.rows[0]));
@@ -254,6 +267,20 @@ app.get("/api/employers/:id", async (req, res) => {
     res.json(r.rows[0]);
   } catch (e) {
     res.status(500).json({ error: "Failed to fetch employer" });
+  }
+});
+
+// Open positions posted against a given university.
+app.get("/api/employers/:id/jobs", async (req, res) => {
+  try {
+    const r = await query(
+      `${JOB_SELECT} WHERE j.university_id = $1 ORDER BY j.posted_at DESC`,
+      [req.params.id]
+    );
+    res.json(r.rows.map(mapJob));
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to fetch university jobs" });
   }
 });
 

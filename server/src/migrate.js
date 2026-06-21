@@ -85,7 +85,12 @@ CREATE TABLE IF NOT EXISTS job_roles (
   created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Optional link from a job posting to a directory employer (university).
+-- Added via ALTER so it also lands on databases created before this column.
+ALTER TABLE jobs ADD COLUMN IF NOT EXISTS university_id INTEGER REFERENCES employers(id) ON DELETE SET NULL;
+
 CREATE INDEX IF NOT EXISTS idx_jobs_category ON jobs(category);
+CREATE INDEX IF NOT EXISTS idx_jobs_university ON jobs(university_id);
 CREATE INDEX IF NOT EXISTS idx_apps_user ON applications(user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_employers_name ON employers (lower(name));
 CREATE INDEX IF NOT EXISTS idx_employers_state ON employers (state);
