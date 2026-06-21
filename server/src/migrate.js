@@ -117,6 +117,20 @@ CREATE TABLE IF NOT EXISTS candidates (
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Employer shortlists a sourced candidate (talent pool) onto one of their jobs,
+-- bringing sourced leads into the ATS pipeline.
+CREATE TABLE IF NOT EXISTS shortlists (
+  id           SERIAL PRIMARY KEY,
+  job_id       INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+  candidate_id INTEGER NOT NULL REFERENCES candidates(id) ON DELETE CASCADE,
+  employer_id  INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  stage        INTEGER NOT NULL DEFAULT 0,
+  status       TEXT NOT NULL DEFAULT 'sourced',
+  note         TEXT,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (job_id, candidate_id)
+);
+
 -- Added via ALTER so it also lands on databases created before this column.
 ALTER TABLE jobs ADD COLUMN IF NOT EXISTS university_id INTEGER REFERENCES employers(id) ON DELETE SET NULL;
 
@@ -138,6 +152,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_job_roles_unique ON job_roles (lower(title
 CREATE INDEX IF NOT EXISTS idx_job_roles_group ON job_roles (category_group);
 CREATE INDEX IF NOT EXISTS idx_job_roles_status ON job_roles (description_status);
 CREATE INDEX IF NOT EXISTS idx_candidates_title ON candidates (title);
+CREATE INDEX IF NOT EXISTS idx_shortlists_job ON shortlists (job_id);
 `;
 
 export async function migrate() {

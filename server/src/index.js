@@ -409,6 +409,48 @@ app.get("/api/candidates", authRequired, requireRole("employer"), async (req, re
   }
 });
 
+// Distinct titles / seniorities for the candidate-search filter dropdowns.
+app.get("/api/candidates/meta", authRequired, requireRole("employer"), async (_req, res) => {
+  try {
+    const titles = await query("SELECT DISTINCT title FROM candidates WHERE title IS NOT NULL ORDER BY title");
+    const seniorities = await query("SELECT DISTINCT seniority FROM candidates WHERE seniority IS NOT NULL ORDER BY seniority");
+    res.json({ titles: titles.rows.map((r) => r.title), seniorities: seniorities.rows.map((r) => r.seniority) });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to fetch candidate metadata" });
+  }
+});
+
+// Full candidate record (employer only).
+app.get("/api/candidates/:id", authRequired, requireRole("employer"), async (req, res) => {
+  try {
+    const r = await query("SELECT * FROM candidates WHERE id = $1", [req.params.id]);
+    if (!r.rows[0]) return res.status(404).json({ error: "Candidate not found" });
+    res.json(r.rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: "Failed to fetch candidate" });
+  }
+});
+
+// Shortlist a sourced candidate onto one of my jobs (idempotent).
+app.post("/api/candidates/:id/shortlist", authRequired, requireRole("employer"), async (req, res) => {
+  const jobId = req.body && req.body.jobId;
+  if (!jobId) return res.status(400).json({ error: "jobId is required" });
+  try {
+    const owns = await query("SELECT id FROM jobs WHERE id = $1 AND employer_id = $2", [jobId, req.user.id]);
+    if (!owns.rows[0]) return res.status(404).json({ error: "Job not found or not yours" });
+    const r = await query(
+      `INSERT INTO shortlists (job_id, candidate_id, employer_id)
+       VALUES ($1, $2, $3) ON CONFLICT (job_id, candidate_id) DO NOTHING RETURNING id`,
+      [jobId, req.params.id, req.user.id]
+    );
+    res.status(r.rows[0] ? 201 : 200).json({ ok: true, alreadyShortlisted: !r.rows[0] });
+  } catch (e) {
+    if (e.code === "23503") return res.status(404).json({ error: "Candidate or job not found" });
+    console.error(e);
+    res.status(500).json({ error: "Failed to shortlist" });
+  }
+});
+
 // Import an Apollo CSV (text in the body) into the talent pool. Idempotent.
 app.post("/api/candidates/import", authRequired, requireRole("employer"), async (req, res) => {
   const csv = req.body && req.body.csv;
@@ -486,6 +528,14 @@ app.get("/api/employer/jobs/:id/applicants", authRequired, requireRole("employer
        WHERE a.job_id = $1 ORDER BY a.status='active' DESC, a.stage DESC, a.applied_at DESC`,
       [req.params.id]
     );
+    const sourced = await query(
+      `SELECT c.id, c.full_name, c.title, c.company, c.email, c.email_status,
+              c.mobile_phone, c.work_phone, c.corporate_phone, c.linkedin_url,
+              c.city, c.state, c.country, c.seniority
+       FROM shortlists s JOIN candidates c ON c.id = s.candidate_id
+       WHERE s.job_id = $1 ORDER BY s.created_at DESC`,
+      [req.params.id]
+    );
     res.json({
       job: { id: String(owns.rows[0].id), title: owns.rows[0].title },
       stages: STAGES,
@@ -494,6 +544,13 @@ app.get("/api/employer/jobs/:id/applicants", authRequired, requireRole("employer
         headline: a.headline, experience: a.experience, city: a.city,
         skills: a.skills || [], resume: a.resume || null,
         stage: a.stage, status: a.status, note: a.note, appliedDays: a.applied_days,
+      })),
+      sourced: sourced.rows.map((c) => ({
+        id: c.id, name: c.full_name, title: c.title, company: c.company,
+        email: c.email, emailStatus: c.email_status,
+        phone: c.mobile_phone || c.work_phone || c.corporate_phone,
+        linkedin: c.linkedin_url, seniority: c.seniority,
+        location: [c.city, c.state, c.country].filter(Boolean).join(", "),
       })),
     });
   } catch (e) {
