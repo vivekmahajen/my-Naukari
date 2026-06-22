@@ -16,6 +16,23 @@ app.use(express.json({ limit: "10mb" })); // allow CSV-text uploads for candidat
 
 const origins = (process.env.CORS_ORIGIN || "").split(",").map((s) => s.trim()).filter(Boolean);
 app.use(cors({ origin: origins.length ? origins : true }));
+
+// Auto-migrate once per cold start: keeps the (idempotent) schema current after
+// any deploy, so new tables/columns never require a manual migration step.
+let _migrated = false, _migrating = null;
+app.use(async (_req, _res, next) => {
+  if (_migrated) return next();
+  try {
+    _migrating = _migrating || migrate();
+    await _migrating;
+    _migrated = true;
+  } catch (e) {
+    _migrating = null; // allow a retry on the next request
+    console.error("Auto-migrate failed:", e.message);
+  }
+  next();
+});
+
 app.use(authOptional);
 
 /* Map a DB job row to the shape the frontend already expects (camelCase). */
