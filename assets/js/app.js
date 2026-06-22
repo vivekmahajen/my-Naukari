@@ -223,11 +223,22 @@ async function renderListings() {
     remote: state.remote.size === 1 ? [...state.remote][0] : "",
     all: state.allJobs ? "true" : "",
   };
-  let results = await fetchJobs(params);
-  if (state.cats.size > 1) results = results.filter(j => state.cats.has(j.category));
-  if (state.remote.size > 1) results = results.filter(j => state.remote.has(j.remote));
+  const applyMulti = (arr) => {
+    if (state.cats.size > 1) arr = arr.filter(j => state.cats.has(j.category));
+    if (state.remote.size > 1) arr = arr.filter(j => state.remote.has(j.remote));
+    return arr;
+  };
+  let results = applyMulti(await fetchJobs(params));
 
-  document.getElementById("result-count").textContent = `${results.length} job${results.length !== 1 ? "s" : ""}`;
+  // For a candidate viewing skill-matched jobs, show "N of TOTAL matched to your skills".
+  const me = getUser();
+  let countText = `${results.length} job${results.length !== 1 ? "s" : ""}`;
+  if (me && me.role === "candidate" && !state.allJobs) {
+    let total = results.length;
+    try { total = applyMulti(await fetchJobs({ ...params, all: "true" })).length; } catch { /* keep */ }
+    countText = `${results.length} of ${total} · matched to your skills`;
+  }
+  document.getElementById("result-count").textContent = countText;
   list.innerHTML = results.length
     ? results.map(jobCard).join("")
     : `<div class="panel center"><h3>No jobs match your filters</h3><p class="muted">Try removing a filter or broadening your search.</p></div>`;
