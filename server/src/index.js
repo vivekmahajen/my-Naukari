@@ -431,7 +431,17 @@ app.get("/api/candidates/meta", authRequired, requireRole("employer"), async (_r
   try {
     const titles = await query("SELECT DISTINCT title FROM candidates WHERE title IS NOT NULL ORDER BY title");
     const seniorities = await query("SELECT DISTINCT seniority FROM candidates WHERE seniority IS NOT NULL ORDER BY seniority");
-    res.json({ titles: titles.rows.map((r) => r.title), seniorities: seniorities.rows.map((r) => r.seniority) });
+    const locations = await query(
+      `SELECT DISTINCT loc FROM (
+         SELECT state AS loc FROM candidates WHERE state IS NOT NULL
+         UNION SELECT city FROM candidates WHERE city IS NOT NULL
+       ) t ORDER BY loc`
+    );
+    res.json({
+      titles: titles.rows.map((r) => r.title),
+      seniorities: seniorities.rows.map((r) => r.seniority),
+      locations: locations.rows.map((r) => r.loc),
+    });
   } catch (e) {
     res.status(500).json({ error: "Failed to fetch candidate metadata" });
   }
