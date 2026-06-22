@@ -189,10 +189,40 @@ app.get("/api/jobs", async (req, res) => {
   if (verified === "true") clauses.push("j.verified = true");
   if (fresh === "true") clauses.push("j.posted_at > now() - interval '7 days'");
 
-  const sql = `${JOB_SELECT} ${clauses.length ? "WHERE " + clauses.join(" AND ") : ""} ORDER BY j.match_score DESC`;
   try {
+    // Personalize for a logged-in candidate: show only jobs overlapping their
+    // skillset (loose, case-insensitive match), and rank by how well they match.
+    let candidateSkills = null;
+    if (req.user && req.user.role === "candidate") {
+      const u = await query("SELECT skills FROM users WHERE id = $1", [req.user.id]);
+      candidateSkills = (u.rows[0] && u.rows[0].skills) || [];
+    }
+    if (candidateSkills && candidateSkills.length) {
+      vals.push(candidateSkills);
+      clauses.push(`EXISTS (
+        SELECT 1 FROM unnest(j.skills) js, unnest($${vals.length}::text[]) cs
+        WHERE lower(js) LIKE '%' || lower(cs) || '%' OR lower(cs) LIKE '%' || lower(js) || '%'
+      )`);
+    }
+
+    const sql = `${JOB_SELECT} ${clauses.length ? "WHERE " + clauses.join(" AND ") : ""} ORDER BY j.match_score DESC`;
     const r = await query(sql, vals);
-    res.json(r.rows.map(mapJob));
+    let jobs = r.rows.map(mapJob);
+
+    if (candidateSkills && candidateSkills.length) {
+      const cs = candidateSkills.map((s) => s.toLowerCase());
+      jobs = jobs.map((j) => {
+        const matched = (j.skills || []).filter((js) =>
+          cs.some((c) => js.toLowerCase().includes(c) || c.includes(js.toLowerCase())));
+        const score = j.skills && j.skills.length ? Math.round((100 * matched.length) / j.skills.length) : 0;
+        return {
+          ...j,
+          matchScore: Math.max(score, 1),
+          matchReason: matched.length ? `Matches your skills: ${matched.slice(0, 4).join(", ")}` : j.matchReason,
+        };
+      }).sort((a, b) => b.matchScore - a.matchScore);
+    }
+    res.json(jobs);
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Failed to fetch jobs" });
