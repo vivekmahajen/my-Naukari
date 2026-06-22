@@ -193,7 +193,7 @@ app.get("/api/jobs", async (req, res) => {
     // Personalize for a logged-in candidate: show only jobs overlapping their
     // skillset (loose, case-insensitive match), and rank by how well they match.
     let candidateSkills = null;
-    if (req.user && req.user.role === "candidate") {
+    if (req.user && req.user.role === "candidate" && req.query.all !== "true") {
       const u = await query("SELECT skills FROM users WHERE id = $1", [req.user.id]);
       candidateSkills = (u.rows[0] && u.rows[0].skills) || [];
     }
