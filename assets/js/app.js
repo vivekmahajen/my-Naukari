@@ -1108,9 +1108,30 @@ async function viewCandidate(id) {
              </div>
              <p class="hint">Shortlisted candidates appear under that job in your Employer ATS.</p>`
           : `<p class="muted">Post a job first to shortlist candidates into its pipeline.</p>`}
+
+        <h3>Candidate login</h3>
+        ${c.email
+          ? `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+               <button class="btn btn-ghost btn-sm" onclick="createCandidateLogin(${c.id})">Create login account</button>
+               <span class="muted" id="login-result-${c.id}" style="font-size:13px"></span>
+             </div>
+             <p class="hint">Creates a candidate sign-in from <b>${c.email}</b> (default password: password123).</p>`
+          : `<p class="muted">No email on file — can't create a login.</p>`}
       </div>
     </div>`;
   document.body.appendChild(overlay);
+}
+
+async function createCandidateLogin(id) {
+  try {
+    const res = await api(`/candidates/${id}/create-login`, { method: "POST", body: {} });
+    const el = document.getElementById("login-result-" + id);
+    if (el) el.textContent = `✓ ${res.email} / ${res.password}`;
+    alert(`Login created:\n\nEmail: ${res.email}\nPassword: ${res.password}\nRole: candidate`);
+  } catch (err) {
+    if (err.status === 409) { alert("A login already exists for " + (err.data && err.data.email ? err.data.email : "this email") + ". Password unchanged."); return; }
+    alert(err.message || "Could not create login");
+  }
 }
 
 async function shortlistCandidate(id) {

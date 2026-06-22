@@ -478,6 +478,33 @@ app.post("/api/candidates/:id/shortlist", authRequired, requireRole("employer"),
   }
 });
 
+// Promote a sourced candidate into a real login account (role: candidate).
+// Uses the candidate's email; default password "password123" unless provided.
+app.post("/api/candidates/:id/create-login", authRequired, requireRole("employer"), async (req, res) => {
+  try {
+    const c = (await query("SELECT * FROM candidates WHERE id = $1", [req.params.id])).rows[0];
+    if (!c) return res.status(404).json({ error: "Candidate not found" });
+    if (!c.email) return res.status(400).json({ error: "Candidate has no email to use as a login" });
+    const password = (req.body && req.body.password) || "password123";
+    const hash = await bcrypt.hash(password, 10);
+    const headline = [c.title, c.company].filter(Boolean).join(" · ") || null;
+    const skills = (c.keywords || "").split(",").map((s) => s.trim()).filter(Boolean).slice(0, 12);
+    const r = await query(
+      `INSERT INTO users (name, email, password_hash, role, headline, city, skills)
+       VALUES ($1, $2, $3, 'candidate', $4, $5, $6)
+       ON CONFLICT (email) DO NOTHING RETURNING id`,
+      [c.full_name || c.email, c.email.toLowerCase(), hash, headline, c.city, skills]
+    );
+    if (!r.rows[0]) {
+      return res.status(409).json({ ok: false, error: "A login already exists for this email", email: c.email.toLowerCase() });
+    }
+    res.status(201).json({ ok: true, email: c.email.toLowerCase(), password, role: "candidate" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to create login" });
+  }
+});
+
 // Import an Apollo CSV (text in the body) into the talent pool. Idempotent.
 app.post("/api/candidates/import", authRequired, requireRole("employer"), async (req, res) => {
   const csv = req.body && req.body.csv;
