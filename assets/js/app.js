@@ -209,7 +209,7 @@ async function renderFeatured() {
 }
 
 /* ---------- Listings ---------- */
-const state = { q: "", loc: "", cats: new Set(), remote: new Set(), verifiedOnly: false, freshOnly: false };
+const state = { q: "", loc: "", cats: new Set(), remote: new Set(), verifiedOnly: false, freshOnly: false, allJobs: false };
 let listingTimer;
 
 async function renderListings() {
@@ -221,6 +221,7 @@ async function renderListings() {
     verified: state.verifiedOnly ? "true" : "", fresh: state.freshOnly ? "true" : "",
     category: state.cats.size === 1 ? [...state.cats][0] : "",
     remote: state.remote.size === 1 ? [...state.remote][0] : "",
+    all: state.allJobs ? "true" : "",
   };
   let results = await fetchJobs(params);
   if (state.cats.size > 1) results = results.filter(j => state.cats.has(j.category));
@@ -249,6 +250,16 @@ function initListings() {
   vo && vo.addEventListener("change", e => { state.verifiedOnly = e.target.checked; renderListings(); });
   const fo = document.getElementById("f-fresh");
   fo && fo.addEventListener("change", e => { state.freshOnly = e.target.checked; renderListings(); });
+
+  // Candidates can toggle between skill-matched jobs (default) and all jobs.
+  const toggle = document.getElementById("match-toggle");
+  const user = getUser();
+  if (toggle && user && user.role === "candidate") {
+    toggle.innerHTML = `<label class="check" style="font-size:13px;display:inline-flex;gap:6px;align-items:center">
+      <input type="checkbox" id="show-all-jobs" /> Show all jobs (ignore my skills)</label>`;
+    const cb = document.getElementById("show-all-jobs");
+    cb.addEventListener("change", e => { state.allJobs = e.target.checked; renderListings(); });
+  }
   renderListings();
 }
 
