@@ -1170,8 +1170,10 @@ async function initCandidates() {
     const meta = await api("/candidates/meta");
     const ts = document.getElementById("cand-title");
     const ss = document.getElementById("cand-seniority");
+    const ls = document.getElementById("cand-loc");
     if (ts) ts.insertAdjacentHTML("beforeend", meta.titles.map(t => `<option value="${t}">${t}</option>`).join(""));
     if (ss) ss.insertAdjacentHTML("beforeend", meta.seniorities.map(s => `<option value="${s}">${s}</option>`).join(""));
+    if (ls) ls.insertAdjacentHTML("beforeend", (meta.locations || []).map(l => `<option value="${l}">${l}</option>`).join(""));
     candEmployerJobs = await api("/employer/jobs").catch(() => []);
   } catch { /* not an employer / not signed in — handled by renderCandidates */ }
 
@@ -1180,7 +1182,7 @@ async function initCandidates() {
   qi && qi.addEventListener("input", e => { candState.q = e.target.value.trim(); debouncedCand(); });
   ti && ti.addEventListener("change", e => { candState.title = e.target.value; renderCandidates(false); });
   si && si.addEventListener("change", e => { candState.seniority = e.target.value; renderCandidates(false); });
-  li && li.addEventListener("input", e => { candState.loc = e.target.value.trim(); debouncedCand(); });
+  li && li.addEventListener("change", e => { candState.loc = e.target.value; renderCandidates(false); });
   const more = document.getElementById("cand-more");
   more && more.addEventListener("click", () => { candState.offset += candState.limit; renderCandidates(true); });
 
