@@ -211,6 +211,7 @@ async function renderFeatured() {
 /* ---------- Listings ---------- */
 const state = { q: "", loc: "", cats: new Set(), remote: new Set(), verifiedOnly: false, freshOnly: false, allJobs: false };
 let listingTimer;
+let myProfile = null; // current candidate's profile (for skill-matching labels)
 
 async function renderListings() {
   const list = document.getElementById("job-list");
@@ -232,8 +233,9 @@ async function renderListings() {
 
   // For a candidate viewing skill-matched jobs, show "N of TOTAL matched to your skills".
   const me = getUser();
+  const hasSkills = !!(myProfile && myProfile.skills && myProfile.skills.length);
   let countText = `${results.length} job${results.length !== 1 ? "s" : ""}`;
-  if (me && me.role === "candidate" && !state.allJobs) {
+  if (me && me.role === "candidate" && !state.allJobs && hasSkills) {
     let total = results.length;
     try { total = applyMulti(await fetchJobs({ ...params, all: "true" })).length; } catch { /* keep */ }
     countText = `${results.length} of ${total} · matched to your skills`;
@@ -245,7 +247,7 @@ async function renderListings() {
 }
 const debouncedListings = () => { clearTimeout(listingTimer); listingTimer = setTimeout(renderListings, 200); };
 
-function initListings() {
+async function initListings() {
   const list = document.getElementById("job-list");
   if (!list) return;
   const p = new URLSearchParams(location.search);
@@ -262,14 +264,19 @@ function initListings() {
   const fo = document.getElementById("f-fresh");
   fo && fo.addEventListener("change", e => { state.freshOnly = e.target.checked; renderListings(); });
 
-  // Candidates can toggle between skill-matched jobs (default) and all jobs.
-  const toggle = document.getElementById("match-toggle");
+  // Candidate personalization: load their profile, then show the right control.
   const user = getUser();
-  if (toggle && user && user.role === "candidate") {
-    toggle.innerHTML = `<label class="check" style="font-size:13px;display:inline-flex;gap:6px;align-items:center">
-      <input type="checkbox" id="show-all-jobs" /> Show all jobs (ignore my skills)</label>`;
-    const cb = document.getElementById("show-all-jobs");
-    cb.addEventListener("change", e => { state.allJobs = e.target.checked; renderListings(); });
+  const toggle = document.getElementById("match-toggle");
+  if (user && user.role === "candidate") {
+    try { myProfile = await api("/profile"); } catch { myProfile = null; }
+    const hasSkills = !!(myProfile && myProfile.skills && myProfile.skills.length);
+    if (toggle && hasSkills) {
+      toggle.innerHTML = `<label class="check" style="font-size:13px;display:inline-flex;gap:6px;align-items:center">
+        <input type="checkbox" id="show-all-jobs" /> Show all jobs (ignore my skills)</label>`;
+      document.getElementById("show-all-jobs").addEventListener("change", e => { state.allJobs = e.target.checked; renderListings(); });
+    } else if (toggle) {
+      toggle.innerHTML = `<span class="muted" style="font-size:13px">Add skills in <a href="dashboard.html">your profile</a> to get matched jobs</span>`;
+    }
   }
   renderListings();
 }
@@ -468,8 +475,50 @@ async function renderDashboard() {
     </div>`;
   }).join("");
 
+  // Candidate profile editor — skills here drive job matching on the Jobs page.
+  let profilePanel = "";
+  const u = getUser();
+  if (u && u.role === "candidate") {
+    let prof = null;
+    try { prof = await api("/profile"); } catch { /* offline */ }
+    const at = (s) => String(s || "").replace(/"/g, "&quot;");
+    const skills = ((prof && prof.skills) || []).join(", ");
+    const noSkills = !((prof && prof.skills) || []).length;
+    profilePanel = `
+      <div class="panel" style="margin-bottom:20px">
+        <h2 style="margin:0 0 4px;font-size:18px">My profile</h2>
+        <p class="muted" style="font-size:13px;margin-bottom:12px">Your <b>skills</b> determine which jobs you're matched to on the Jobs page.${noSkills ? ` <span style="color:var(--red)">Add skills to get matched jobs.</span>` : ""}</p>
+        <div class="form-grid-2">
+          <div class="form-row"><label>Headline</label><input id="pf-headline" value="${at(prof && prof.headline)}" placeholder="e.g. Vice-Chancellor" /></div>
+          <div class="form-row"><label>City</label><input id="pf-city" value="${at(prof && prof.city)}" placeholder="e.g. Pune" /></div>
+        </div>
+        <div class="form-row"><label>Experience</label><input id="pf-exp" value="${at(prof && prof.experience)}" placeholder="e.g. 10-20 years" /></div>
+        <div class="form-row"><label>Skills <span class="muted">(comma-separated)</span></label>
+          <input id="pf-skills" value="${at(skills)}" placeholder="e.g. NAAC, NIRF, NEP 2020, Academic Leadership, Fundraising" /></div>
+        <button class="btn btn-primary btn-sm" onclick="saveProfile()">Save profile</button>
+        <span id="pf-msg" class="muted" style="font-size:13px;margin-left:10px"></span>
+      </div>`;
+  }
+
   document.querySelector(".dash-head h1").textContent = `Welcome back, ${getUser().name.split(" ")[0]} 👋`;
-  root.innerHTML = stats + `<h2 style="margin:24px 0 14px;font-size:20px">Your applications</h2>` + (rows || `<p class="muted">No applications yet — <a href="jobs.html">find a job</a>.</p>`);
+  root.innerHTML = profilePanel + stats + `<h2 style="margin:24px 0 14px;font-size:20px">Your applications</h2>` + (rows || `<p class="muted">No applications yet — <a href="jobs.html">find a job</a>.</p>`);
+}
+
+async function saveProfile() {
+  const body = {
+    headline: document.getElementById("pf-headline").value.trim(),
+    city: document.getElementById("pf-city").value.trim(),
+    experience: document.getElementById("pf-exp").value.trim(),
+    skills: document.getElementById("pf-skills").value,
+  };
+  const msg = document.getElementById("pf-msg");
+  try {
+    await api("/profile", { method: "PUT", body });
+    myProfile = null; // force re-fetch on the Jobs page
+    if (msg) { msg.style.color = "var(--green, #00b386)"; msg.textContent = "✓ Saved — your job matches will update."; }
+  } catch (err) {
+    if (msg) { msg.style.color = "var(--red)"; msg.textContent = err.message || "Save failed"; }
+  }
 }
 
 /* ---------- Home search ---------- */

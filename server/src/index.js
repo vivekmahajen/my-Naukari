@@ -73,6 +73,15 @@ const JOB_SELECT = `
   FROM jobs j
   LEFT JOIN employers e ON e.id = j.university_id`;
 
+// Generic words ignored when comparing candidate skills to job skills, so a
+// shared filler word doesn't create a spurious match.
+const JOB_MATCH_STOPWORDS = new Set([
+  "and", "the", "for", "with", "of", "to", "in", "or", "a", "an", "on", "at", "by",
+  "amp", "etc", "per", "you", "your", "are", "is", "be", "as", "we", "our",
+  "experience", "years", "year", "role", "record", "track", "strong", "working",
+  "knowledge", "demonstrable", "success", "large", "scale", "deep", "and/or",
+]);
+
 /* ---------------- Health ---------------- */
 app.get("/api/health", async (_req, res) => {
   try {
@@ -174,6 +183,40 @@ app.post("/api/auth/login", async (req, res) => {
 
 app.get("/api/auth/me", authRequired, (req, res) => res.json({ user: req.user }));
 
+/* ---------------- Candidate profile (self-service) ---------------- */
+app.get("/api/profile", authRequired, async (req, res) => {
+  try {
+    const r = await query(
+      "SELECT id, name, email, role, company, headline, experience, city, skills FROM users WHERE id = $1",
+      [req.user.id]
+    );
+    res.json(r.rows[0] || null);
+  } catch (e) {
+    res.status(500).json({ error: "Failed to fetch profile" });
+  }
+});
+
+app.put("/api/profile", authRequired, async (req, res) => {
+  const b = req.body || {};
+  const skills = Array.isArray(b.skills)
+    ? b.skills.map((s) => String(s).trim()).filter(Boolean)
+    : String(b.skills || "").split(",").map((s) => s.trim()).filter(Boolean);
+  try {
+    const r = await query(
+      `UPDATE users SET
+         name = COALESCE($1, name),
+         headline = $2, experience = $3, city = $4, skills = $5
+       WHERE id = $6
+       RETURNING id, name, email, role, company, headline, experience, city, skills`,
+      [b.name || null, b.headline || null, b.experience || null, b.city || null, skills, req.user.id]
+    );
+    res.json(r.rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
 /* ---------------- Jobs ---------------- */
 app.get("/api/jobs", async (req, res) => {
   const { q, location, category, remote, verified, fresh } = req.query;
@@ -190,19 +233,11 @@ app.get("/api/jobs", async (req, res) => {
   if (fresh === "true") clauses.push("j.posted_at > now() - interval '7 days'");
 
   try {
-    // Personalize for a logged-in candidate: show only jobs overlapping their
-    // skillset (loose, case-insensitive match), and rank by how well they match.
+    // Personalize for a logged-in candidate who has skills on their profile.
     let candidateSkills = null;
     if (req.user && req.user.role === "candidate" && req.query.all !== "true") {
       const u = await query("SELECT skills FROM users WHERE id = $1", [req.user.id]);
       candidateSkills = (u.rows[0] && u.rows[0].skills) || [];
-    }
-    if (candidateSkills && candidateSkills.length) {
-      vals.push(candidateSkills);
-      clauses.push(`EXISTS (
-        SELECT 1 FROM unnest(j.skills) js, unnest($${vals.length}::text[]) cs
-        WHERE lower(js) LIKE '%' || lower(cs) || '%' OR lower(cs) LIKE '%' || lower(js) || '%'
-      )`);
     }
 
     const sql = `${JOB_SELECT} ${clauses.length ? "WHERE " + clauses.join(" AND ") : ""} ORDER BY j.match_score DESC`;
@@ -210,17 +245,27 @@ app.get("/api/jobs", async (req, res) => {
     let jobs = r.rows.map(mapJob);
 
     if (candidateSkills && candidateSkills.length) {
-      const cs = candidateSkills.map((s) => s.toLowerCase());
+      // Compare on meaningful word tokens shared between the candidate's skills
+      // and each job's skills. A job is shown only if it shares ≥1 token.
+      const tokenize = (s) => String(s).toLowerCase().split(/[^a-z0-9]+/)
+        .filter((w) => w.length >= 3 && !JOB_MATCH_STOPWORDS.has(w));
+      const candTokens = new Set();
+      candidateSkills.forEach((s) => tokenize(s).forEach((t) => candTokens.add(t)));
+
       jobs = jobs.map((j) => {
-        const matched = (j.skills || []).filter((js) =>
-          cs.some((c) => js.toLowerCase().includes(c) || c.includes(js.toLowerCase())));
-        const score = j.skills && j.skills.length ? Math.round((100 * matched.length) / j.skills.length) : 0;
-        return {
-          ...j,
-          matchScore: Math.max(score, 1),
-          matchReason: matched.length ? `Matches your skills: ${matched.slice(0, 4).join(", ")}` : j.matchReason,
-        };
-      }).sort((a, b) => b.matchScore - a.matchScore);
+        const jobTokens = new Set();
+        (j.skills || []).forEach((s) => tokenize(s).forEach((t) => jobTokens.add(t)));
+        const shared = [...jobTokens].filter((t) => candTokens.has(t));
+        const matchedSkills = (j.skills || []).filter((s) => tokenize(s).some((t) => candTokens.has(t)));
+        const score = jobTokens.size ? Math.round((100 * shared.length) / jobTokens.size) : 0;
+        return { ...j, sharedCount: shared.length, matchScore: Math.max(score, shared.length ? 1 : 0),
+          matchReason: matchedSkills.length ? `Matches your skills: ${matchedSkills.slice(0, 4).join(", ")}` : "" };
+      })
+        // Require ≥2 shared skill-words (or a strong ≥50% overlap) so a single
+        // generic word like "leadership" doesn't pull in unrelated jobs.
+        .filter((j) => j.sharedCount >= 2 || j.matchScore >= 50)
+        .sort((a, b) => b.matchScore - a.matchScore)
+        .map(({ sharedCount, ...j }) => j);
     }
     res.json(jobs);
   } catch (e) {
